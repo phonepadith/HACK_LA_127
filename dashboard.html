@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>GeoAI SOC — FTTH Security Intelligence (Laos)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+  :root { --bg:#0d1117; --panel:#161b22; --border:#30363d; --text:#e6edf3;
+          --dim:#8b949e; --ok:#3fb950; --warn:#d29922; --bad:#f85149; --accent:#58a6ff; }
+  * { box-sizing:border-box; margin:0; }
+  body { font:13px/1.45 -apple-system,'Segoe UI',sans-serif; background:var(--bg);
+         color:var(--text); height:100vh; display:flex; flex-direction:column; overflow:hidden; }
+
+  /* --- SOC top bar --- */
+  nav { display:flex; align-items:center; gap:4px; background:var(--panel);
+        border-bottom:1px solid var(--border); padding:0 14px; height:46px; flex:none; }
+  nav .brand { font-weight:700; font-size:14px; margin-right:18px; white-space:nowrap; }
+  nav .brand span { color:var(--accent); }
+  nav button.tab { background:none; border:0; color:var(--dim); font-size:13px;
+        padding:0 14px; height:46px; cursor:pointer; border-bottom:2px solid transparent; }
+  nav button.tab:hover { color:var(--text); }
+  nav button.tab.active { color:var(--text); border-bottom-color:var(--accent); }
+  nav .right { margin-left:auto; display:flex; align-items:center; gap:14px;
+               font-size:12px; color:var(--dim); }
+  #mode { font-weight:700; }
+
+  /* --- KPI strip --- */
+  .kpis { display:grid; grid-template-columns:repeat(6,1fr); gap:1px;
+          background:var(--border); border-bottom:1px solid var(--border); flex:none; }
+  .kpi { background:var(--panel); padding:8px 14px 0; overflow:hidden; }
+  .kpi b { display:block; font-size:19px; }
+  .kpi span { color:var(--dim); font-size:10px; text-transform:uppercase; letter-spacing:.04em; }
+  .kpi .spark { height:34px; margin:0 -14px; }
+
+  main { flex:1; min-height:0; position:relative; }
+  .view { position:absolute; inset:0; display:none; }
+  .view.active { display:flex; }
+
+  /* --- Overview --- */
+  #map { flex:1; }
+  aside { width:360px; border-left:1px solid var(--border); background:var(--panel);
+          overflow-y:auto; }
+  section { padding:10px 14px; border-bottom:1px solid var(--border); }
+  section h2 { font-size:11px; text-transform:uppercase; color:var(--dim);
+               letter-spacing:.05em; margin-bottom:8px; }
+  .alert { border:1px solid var(--border); border-left:3px solid var(--warn);
+           border-radius:6px; padding:8px 10px; margin-bottom:8px; }
+  .alert.critical, .alert.high { border-left-color:var(--bad); }
+  .alert .sev { font-size:10px; font-weight:700; text-transform:uppercase; }
+  .alert.critical .sev, .alert.high .sev { color:var(--bad); }
+  .alert.medium .sev, .alert.low .sev { color:var(--warn); }
+  .alert button { margin-top:6px; background:#238636; color:#fff; border:0; padding:5px 10px;
+                  border-radius:6px; cursor:pointer; font-size:12px; }
+  .alert button:hover { background:#2ea043; }
+  .feed div { padding:2px 0; color:var(--dim); font-size:11px;
+              font-family:ui-monospace,Menlo,monospace; }
+  .feed .alert-e { color:var(--bad); } .feed .detect-e { color:var(--warn); }
+  .feed .recover-e { color:var(--ok); } .feed .ai-e { color:var(--accent); }
+  .feed .locate { background:#21262d; border:1px solid var(--border); color:var(--accent);
+                  border-radius:4px; font-size:10px; padding:0 5px; margin-left:4px;
+                  cursor:pointer; vertical-align:1px; }
+  .feed .locate:hover { border-color:var(--accent); }
+  .attack-path { animation: dashflow .5s linear infinite; }
+  @keyframes dashflow { to { stroke-dashoffset:-32; } }
+  #attackBtn { width:100%; background:#21262d; color:var(--bad); border:1px solid var(--border);
+               padding:7px; border-radius:6px; cursor:pointer; font-size:12px; }
+  #attackBtn:hover { border-color:var(--bad); }
+  .none { color:var(--dim); font-style:italic; }
+  .iprow { display:flex; justify-content:space-between; padding:2px 0;
+           font:12px ui-monospace,Menlo,monospace; }
+  .iprow b { color:var(--bad); font-weight:400; }
+  .iprow span { color:var(--dim); }
+  .legend { position:absolute; z-index:1000; bottom:14px; left:14px; background:var(--panel);
+            border:1px solid var(--border); border-radius:6px; padding:8px 12px; font-size:11px; }
+  .legend i { display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:5px; }
+
+  /* --- Analytics --- */
+  #view-analytics { flex-direction:column; overflow-y:auto; padding:16px; gap:16px; }
+  .rangebar { display:flex; gap:6px; align-items:center; }
+  .rangebar button { background:#21262d; border:1px solid var(--border); color:var(--dim);
+        padding:5px 14px; border-radius:6px; cursor:pointer; font-size:12px; }
+  .rangebar button.active { color:var(--text); border-color:var(--accent); background:#0d419d33; }
+  .rangebar .total { margin-left:auto; color:var(--dim); font-size:12px; }
+  .card { background:var(--panel); border:1px solid var(--border); border-radius:10px;
+          padding:14px; box-shadow:0 2px 8px rgba(0,0,0,.25); }
+  .card h3 { font-size:12px; text-transform:uppercase; color:var(--dim);
+             letter-spacing:.05em; margin-bottom:10px; }
+  .charts2 { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .chartbox { position:relative; }
+
+  /* --- Events --- */
+  #view-events { overflow-y:auto; padding:16px; gap:16px; flex-direction:row;
+                 align-items:flex-start; }
+  #view-events .card { flex:1; }
+
+  /* --- Mobile --- */
+  @media (max-width: 768px) {
+    nav { flex-wrap:wrap; height:auto; padding:4px 10px; }
+    nav .brand { font-size:12px; margin-right:6px; }
+    nav button.tab { height:36px; padding:0 10px; font-size:12px; }
+    nav .right { gap:8px; font-size:11px; }
+    nav .env { display:none; }
+    .kpis { grid-template-columns:repeat(3,1fr); }
+    .kpi b { font-size:16px; }
+    #view-overview.active { flex-direction:column; overflow-y:auto; }
+    #map { flex:none; height:48vh; min-height:280px; }
+    aside { width:100%; border-left:0; border-top:1px solid var(--border);
+            overflow:visible; }
+    .legend { display:none; }
+    #view-analytics { padding:10px; gap:10px; }
+    .rangebar { flex-wrap:wrap; }
+    .rangebar .total { width:100%; margin:4px 0 0; }
+    .charts2 { grid-template-columns:1fr; }
+    #view-events { flex-direction:column; padding:10px; gap:10px; }
+    #view-events .card { width:100%; max-width:none !important; }
+  }
+</style>
+</head>
+<body>
+<nav>
+  <div class="brand">⬢ GeoAI <span>SOC</span> — FTTH Security Intelligence</div>
+  <button class="tab active" data-view="overview">Overview</button>
+  <button class="tab" data-view="analytics">Analytics</button>
+  <button class="tab" data-view="events">Events</button>
+  <div class="right">
+    <span id="mode">…</span><span class="env">Laos · 18 provinces</span><span id="clock"></span>
+  </div>
+</nav>
+<div class="kpis">
+  <div class="kpi"><b id="k-total">–</b><span>ONTs online</span></div>
+  <div class="kpi"><b id="k-comp" style="color:var(--bad)">–</b><span>Compromised</span>
+    <div class="spark" id="spark-comp"></div></div>
+  <div class="kpi"><b id="k-susp" style="color:var(--warn)">–</b><span>Suspicious</span>
+    <div class="spark" id="spark-susp"></div></div>
+  <div class="kpi"><b id="k-alerts">–</b><span>Active alerts</span>
+    <div class="spark" id="spark-alerts"></div></div>
+  <div class="kpi"><b id="k-att">–</b><span>Attacks detected</span></div>
+  <div class="kpi"><b id="k-rec" style="color:var(--ok)">–</b><span>ONTs recovered</span></div>
+</div>
+<main>
+
+  <div class="view active" id="view-overview">
+    <div id="map"></div>
+    <div class="legend">
+      <div><i style="background:var(--ok)"></i>Normal ONT</div>
+      <div><i style="background:var(--warn)"></i>Suspicious (AI-flagged)</div>
+      <div><i style="background:var(--bad)"></i>Compromised (taken over)</div>
+      <div><i style="background:transparent;border:2px solid var(--accent);border-radius:2px"></i>Province zone (ring = risk)</div>
+      <div><span style="color:var(--bad)">⤳</span> Attack path (origin → target)</div>
+    </div>
+    <aside>
+      <section>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+          <input type="checkbox" id="autoRec" style="accent-color:#238636">
+          <span>🤖 <b>AI auto-approve recovery</b></span>
+        </label>
+        <div style="color:var(--dim);font-size:11px;margin-top:4px">
+          When on, the AI approves ACS batch recovery automatically as soon as a
+          zone's compromise is confirmed — no operator click needed.
+        </div>
+      </section>
+      <section>
+        <h2>Active hotspot alerts</h2>
+        <div id="alerts"><div class="none">No active alerts</div></div>
+      </section>
+      <section>
+        <h2>Top attacker sources (5 min)</h2>
+        <div id="ips"><div class="none">No hostile sources</div></div>
+      </section>
+      <section>
+        <h2>Live event feed</h2>
+        <div class="feed" id="events"></div>
+      </section>
+      <section>
+        <button id="attackBtn" onclick="fetch('/api/attack',{method:'POST'})">
+          ⚡ Simulate cross-province attack
+        </button>
+      </section>
+    </aside>
+  </div>
+
+  <div class="view" id="view-analytics">
+    <div class="rangebar">
+      <button data-range="day" class="active">24 hours</button>
+      <button data-range="month">30 days</button>
+      <button data-range="year">12 months</button>
+      <span class="total" id="stat-total"></span>
+    </div>
+    <div class="card">
+      <h3>Attacks over time</h3>
+      <div class="chartbox" id="chart-time"></div>
+    </div>
+    <div class="charts2">
+      <div class="card">
+        <h3>Most attacked zones (target province)</h3>
+        <div class="chartbox" id="chart-zone"></div>
+      </div>
+      <div class="card">
+        <h3>Attack origins (source province)</h3>
+        <div class="chartbox" id="chart-origin"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="view" id="view-events">
+    <div class="card">
+      <h3>Full event feed</h3>
+      <div class="feed" id="events-full"></div>
+    </div>
+    <div class="card" style="max-width:380px">
+      <h3>Top attacker sources (5 min)</h3>
+      <div id="ips-full"><div class="none">No hostile sources</div></div>
+    </div>
+  </div>
+
+</main>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+<script>
+/* --- view switching --- */
+let currentView = 'overview';
+document.querySelectorAll('nav .tab').forEach(b => b.onclick = () => {
+  currentView = b.dataset.view;
+  document.querySelectorAll('nav .tab').forEach(x => x.classList.toggle('active', x === b));
+  document.querySelectorAll('.view').forEach(v =>
+    v.classList.toggle('active', v.id === 'view-' + currentView));
+  if (currentView === 'overview') setTimeout(() => map.invalidateSize(), 50);
+  if (currentView === 'analytics') setTimeout(loadStats, 50);
+});
+
+/* --- map --- */
+const map = L.map('map').setView([18.4, 103.5], 7);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+  { attribution: '&copy; OpenStreetMap &copy; CARTO', maxZoom: 18 }).addTo(map);
+const COLORS = { normal:'#3fb950', suspicious:'#d29922', compromised:'#f85149' };
+const ontMarkers = {}, oltLayers = {}, zoneIndex = {};
+let attackKey = null, attackLayers = [], tracerAnim = null;
+function riskColor(r) { return r > 0.5 ? '#f85149' : r > 0.2 ? '#d29922' : '#58a6ff'; }
+
+const ipRows = l => l.length
+  ? l.map(i => `<div class="iprow"><b>${i.ip}</b><span>${i.hits} attempts</span></div>`).join('')
+  : '<div class="none">No hostile sources</div>';
+const feedRows = l => l.map(e =>
+  `<div class="${e.kind}-e">[${e.t}] ${e.msg}${e.zone
+    ? ` <button class="locate" onclick="locateZone('${e.zone}')">📍 map</button>` : ''}</div>`
+  ).join('');
+
+/* click a log's 📍 button -> jump to the attacked area on the map */
+function locateZone(id) {
+  const o = zoneIndex[id];
+  if (!o) return;
+  document.querySelector('[data-view="overview"]').click();
+  setTimeout(() => {
+    map.flyTo([o.lat, o.lon], 10, { duration: 1.2 });
+    const pulse = L.circle([o.lat, o.lon], { radius: 14000, color: '#f85149',
+      weight: 2, fillColor: '#f85149', fillOpacity: 0.15 }).addTo(map);
+    setTimeout(() => map.removeLayer(pulse), 3500);
+  }, 100);
+}
+
+/* --- live state --- */
+async function refresh() {
+  let s;
+  try { s = await (await fetch('/api/state')).json(); } catch { return; }
+  document.getElementById('clock').textContent = s.time;
+  const live = s.mode === 'live';
+  const modeEl = document.getElementById('mode');
+  modeEl.textContent = live ? '● LIVE MONITORING' : '● SIMULATION';
+  modeEl.style.color = live ? 'var(--bad)' : 'var(--accent)';
+  document.getElementById('attackBtn').style.display = live ? 'none' : '';
+  const auto = document.getElementById('autoRec');
+  if (document.activeElement !== auto) auto.checked = s.auto_recover;
+  const st = s.stats;
+  for (const [id, v] of [['k-total', st.total], ['k-comp', st.compromised],
+      ['k-susp', st.suspicious], ['k-alerts', st.alerts],
+      ['k-att', st.attacks_detected], ['k-rec', st.onts_recovered]])
+    document.getElementById(id).textContent = v;
+  pushSpark('comp', st.compromised);
+  pushSpark('susp', st.suspicious);
+  pushSpark('alerts', st.alerts);
+
+  for (const o of s.onts) {
+    if (!ontMarkers[o.id])
+      ontMarkers[o.id] = L.circleMarker([o.lat, o.lon], { radius: 3.5, weight: 1 })
+        .bindTooltip(o.id).addTo(map);
+    ontMarkers[o.id].setStyle({ color: COLORS[o.status], fillColor: COLORS[o.status],
+                                fillOpacity: o.status === 'normal' ? 0.5 : 0.9 });
+  }
+  for (const olt of s.olts) {
+    zoneIndex[olt.id] = olt;
+    if (!oltLayers[olt.id]) {
+      oltLayers[olt.id] = {
+        hub: L.circleMarker([olt.lat, olt.lon], { radius: 6, weight: 2, fillOpacity: 1 })
+          .bindTooltip(`${olt.name} (${olt.id})`).addTo(map),
+        ring: L.circle([olt.lat, olt.lon], { radius: 11000, weight: 1.5, fillOpacity: 0.06 })
+          .addTo(map),
+      };
+    }
+    const c = riskColor(olt.risk);
+    oltLayers[olt.id].hub.setStyle({ color: '#58a6ff', fillColor: '#0d1117' });
+    oltLayers[olt.id].ring.setStyle({ color: c, fillColor: c,
+      fillOpacity: 0.05 + olt.risk * 0.25,
+      dashArray: s.attack && s.attack.zone === olt.id ? '4 4' : null });
+  }
+  /* attack path: flowing dashed line + tracer dot shooting origin -> target */
+  const key = s.attack ? `${s.attack.from.name}>${s.attack.zone}` : null;
+  if (key !== attackKey) {
+    attackLayers.forEach(l => map.removeLayer(l));
+    attackLayers = [];
+    if (tracerAnim) { cancelAnimationFrame(tracerAnim); tracerAnim = null; }
+    attackKey = key;
+    if (s.attack) {
+      const from = s.attack.from, to = s.attack.to;
+      const line = L.polyline([[from.lat, from.lon], [to.lat, to.lon]],
+        { color: '#f85149', weight: 2, dashArray: '8 8', opacity: 0.85,
+          className: 'attack-path' }).addTo(map);
+      const org = L.circleMarker([from.lat, from.lon],
+        { radius: 8, color: '#f85149', fillColor: '#f85149', fillOpacity: 0.3, weight: 2 })
+        .bindTooltip(`Attack origin: ${from.name} → ${to.name}`).addTo(map);
+      const dot = L.circleMarker([from.lat, from.lon],
+        { radius: 5, color: '#ff7b72', fillColor: '#ff7b72', fillOpacity: 1, weight: 0 })
+        .addTo(map);
+      attackLayers = [line, org, dot];
+      const dur = 1400, t0 = performance.now();
+      (function frame(now) {
+        const t = ((now - t0) % dur) / dur;
+        dot.setLatLng([from.lat + (to.lat - from.lat) * t,
+                       from.lon + (to.lon - from.lon) * t]);
+        dot.setStyle({ fillOpacity: 1 - t * 0.6 });
+        tracerAnim = requestAnimationFrame(frame);
+      })(t0);
+    }
+  }
+  document.getElementById('alerts').innerHTML = s.alerts.length
+    ? s.alerts.map(a => `
+      <div class="alert ${a.severity}">
+        <span class="sev">${a.severity}</span> — <b>${a.zone}</b> (${a.olt})
+        <div style="color:var(--dim)">risk ${a.risk} · ${a.compromised} compromised,
+          ${a.suspicious} suspicious · origin: ${a.origin} · since ${a.since}</div>
+        <div>Recommended: ${a.action}</div>
+        <button onclick="fetch('/api/recover/${a.olt}',{method:'POST'})">
+          ✓ Approve batch recovery (ACS)</button>
+      </div>`).join('')
+    : '<div class="none">No active alerts</div>';
+  document.getElementById('ips').innerHTML = ipRows(s.top_ips);
+  document.getElementById('ips-full').innerHTML = ipRows(s.top_ips);
+  document.getElementById('events').innerHTML = feedRows(s.events.slice(0, 14));
+  document.getElementById('events-full').innerHTML = feedRows(s.events);
+}
+
+/* --- KPI sparklines (ApexCharts) --- */
+const sparkHist = { comp: [], susp: [], alerts: [] };
+const sparks = {};
+for (const [id, color] of [['comp', '#f85149'], ['susp', '#d29922'], ['alerts', '#58a6ff']]) {
+  sparks[id] = new ApexCharts(document.getElementById('spark-' + id), {
+    chart: { type: 'area', height: 34, sparkline: { enabled: true },
+             animations: { enabled: false } },
+    series: [{ data: [] }],
+    stroke: { curve: 'smooth', width: 2 },
+    fill: { type: 'gradient', gradient: { opacityFrom: 0.45, opacityTo: 0.05 } },
+    colors: [color], tooltip: { enabled: false },
+  });
+  sparks[id].render();
+}
+function pushSpark(id, v) {
+  sparkHist[id].push(v);
+  if (sparkHist[id].length > 80) sparkHist[id].shift();
+  sparks[id].updateSeries([{ data: sparkHist[id] }], false);
+}
+
+/* --- analytics charts (ApexCharts) --- */
+let range = 'day', apex = null;
+const APEX_BASE = {
+  chart: { background: 'transparent', toolbar: { show: false },
+           animations: { enabled: false }, foreColor: '#8b949e' },
+  grid: { borderColor: '#30363d' },
+  dataLabels: { enabled: false },
+  tooltip: { theme: 'dark' },
+};
+function barChart(el, color, height) {
+  return new ApexCharts(document.getElementById(el), { ...APEX_BASE,
+    chart: { ...APEX_BASE.chart, type: 'bar', height },
+    series: [{ name: 'attacks', data: [] }],
+    plotOptions: { bar: { horizontal: true, borderRadius: 4, barHeight: '55%' } },
+    colors: [color], xaxis: { categories: [] } });
+}
+function initCharts() {
+  if (apex) return;
+  apex = {
+    time: new ApexCharts(document.getElementById('chart-time'), { ...APEX_BASE,
+      chart: { ...APEX_BASE.chart, type: 'area', height: 260 },
+      series: [{ name: 'attacks', data: [] }],
+      stroke: { curve: 'smooth', width: 2 },
+      fill: { type: 'gradient', gradient: { opacityFrom: 0.4, opacityTo: 0.05 } },
+      colors: ['#58a6ff'], xaxis: { categories: [], tickAmount: 12 } }),
+    zone: barChart('chart-zone', '#f85149', 300),
+    origin: barChart('chart-origin', '#d29922', 300),
+  };
+  Object.values(apex).forEach(c => c.render());
+}
+
+document.querySelectorAll('.rangebar button').forEach(b => b.onclick = () => {
+  range = b.dataset.range;
+  document.querySelectorAll('.rangebar button').forEach(x =>
+    x.classList.toggle('active', x === b));
+  loadStats();
+});
+
+async function loadStats() {
+  let d;
+  try { d = await (await fetch('/api/stats?range=' + range)).json(); } catch { return; }
+  initCharts();
+  document.getElementById('stat-total').textContent =
+    d.total + ' attacks in selected period';
+  apex.time.updateOptions({ xaxis: { categories: d.labels, tickAmount: 12 } }, false, false);
+  apex.time.updateSeries([{ name: 'attacks', data: d.attacks }], false);
+  apex.zone.updateOptions({ xaxis: { categories: d.by_zone.map(z => z.name) } }, false, false);
+  apex.zone.updateSeries([{ name: 'attacks', data: d.by_zone.map(z => z.count) }], false);
+  apex.origin.updateOptions({ xaxis: { categories: d.by_origin.map(z => z.name) } }, false, false);
+  apex.origin.updateSeries([{ name: 'attacks', data: d.by_origin.map(z => z.count) }], false);
+}
+
+document.getElementById('autoRec').onchange = e =>
+  fetch('/api/auto', { method: 'POST', body: JSON.stringify({ enabled: e.target.checked }) });
+
+refresh();
+setInterval(refresh, 1500);
+setInterval(() => { if (currentView === 'analytics') loadStats(); }, 10000);
+</script>
+</body>
+</html>
