@@ -16,7 +16,9 @@
 
   /* --- login gate --- */
   #login { position:fixed; inset:0; display:flex; align-items:center; justify-content:center;
-           background:radial-gradient(ellipse at 50% 35%, #12213A 0%, var(--bg) 70%); z-index:100; }
+           background:
+             url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%20400%20640'%3E%3Cpath%20d%3D'M378.9%2C520.4L334.2%2C501.9L311.3%2C536.6L269.7%2C516.8L286.0%2C494.1L288.2%2C451.4L247.5%2C407.4L244.3%2C357.6L205.9%2C316.5L167.7%2C313.1L157.6%2C330.6L127.9%2C332.1L112.9%2C323.2L59.6%2C353.4L58.5%2C308.1L70.9%2C254.9L36.7%2C252.5L33.8%2C222.2L12.0%2C206.7L22.7%2C188.0L65.8%2C155.2L70.3%2C167.1L97.2%2C168.5L89.6%2C110.7L115.8%2C103.4L145.2%2C143.2L167.9%2C189.1L230.1%2C189.5L249.7%2C233.5L217.4%2C246.7L202.8%2C264.8L263.3%2C295.0L305.3%2C354.7L337.1%2C399.2L375.3%2C434.3L388.0%2C470.0L378.9%2C520.4Z'%20fill%3D'rgba(34%2C211%2C238%2C0.045)'%20stroke%3D'rgba(34%2C211%2C238%2C0.4)'%20stroke-width%3D'1.6'%2F%3E%3Ccircle%20cx%3D'139.1'%20cy%3D'329.9'%20r%3D'5'%20fill%3D'rgba(34%2C211%2C238%2C0.9)'%2F%3E%3Ccircle%20cx%3D'112.8'%20cy%3D'142.8'%20r%3D'3'%20fill%3D'rgba(34%2C211%2C238%2C0.55)'%2F%3E%3Ccircle%20cx%3D'76.9'%20cy%3D'179.4'%20r%3D'3'%20fill%3D'rgba(34%2C211%2C238%2C0.55)'%2F%3E%3Ccircle%20cx%3D'106.3'%20cy%3D'192.8'%20r%3D'3'%20fill%3D'rgba(34%2C211%2C238%2C0.55)'%2F%3E%3Ccircle%20cx%3D'27.0'%20cy%3D'213.8'%20r%3D'3'%20fill%3D'rgba(34%2C211%2C238%2C0.55)'%2F%3E%3Ccircle%20cx%3D'113.9'%20cy%3D'233.6'%20r%3D'3'%20fill%3D'rgba(34%2C211%2C238%2C0.55)'%2F%3E%3Ccircle%20cx%3D'210.5'%20cy%3D'206.7'%20r%3D'3'%20fill%3D'rgba(34%2C211%2C238%2C0.55)'%2F%3E%3Ccircle%20cx%3D'92.5'%20cy%3D'265.2'%20r%3D'3'%20fill%3D'rgba(34%2C211%2C238%2C0.55)'%2F%3E%3Ccircle%20cx%3D'168.7'%20cy%3D'255.4'%20r%3D'3'%20fill%3D'rgba(34%2C211%2C238%2C0.55)'%2F%3E%3Ccircle%20cx%3D'128.1'%20cy%3D'303.7'%20r%3D'3'%20fill%3D'rgba(34%2C211%2C238%2C0.55)'%2F%3E%3Ccircle%20cx%3D'190.9'%20cy%3D'310.0'%20r%3D'3'%20fill%3D'rgba(34%2C211%2C238%2C0.55)'%2F%3E%3Ccircle%20cx%3D'248.7'%20cy%3D'358.6'%20r%3D'3'%20fill%3D'rgba(34%2C211%2C238%2C0.55)'%2F%3E%3Ccircle%20cx%3D'246.3'%20cy%3D'401.6'%20r%3D'3'%20fill%3D'rgba(34%2C211%2C238%2C0.55)'%2F%3E%3Ccircle%20cx%3D'330.3'%20cy%3D'444.0'%20r%3D'3'%20fill%3D'rgba(34%2C211%2C238%2C0.55)'%2F%3E%3Ccircle%20cx%3D'345.8'%20cy%3D'462.5'%20r%3D'3'%20fill%3D'rgba(34%2C211%2C238%2C0.55)'%2F%3E%3Ccircle%20cx%3D'298.9'%20cy%3D'474.1'%20r%3D'3'%20fill%3D'rgba(34%2C211%2C238%2C0.55)'%2F%3E%3Ccircle%20cx%3D'351.1'%20cy%3D'489.7'%20r%3D'3'%20fill%3D'rgba(34%2C211%2C238%2C0.55)'%2F%3E%3Ccircle%20cx%3D'162.3'%20cy%3D'283.1'%20r%3D'3'%20fill%3D'rgba(34%2C211%2C238%2C0.55)'%2F%3E%3C%2Fsvg%3E") right 6% center / auto 88% no-repeat,
+             radial-gradient(ellipse at 50% 35%, #12213A 0%, var(--bg) 70%); z-index:100; }
   .login-card { width:340px; background:rgba(15,27,45,.85); border:1px solid var(--border);
                 border-radius:16px; padding:34px 30px; box-shadow:0 30px 80px rgba(0,0,0,.55);
                 display:flex; flex-direction:column; gap:12px; backdrop-filter:blur(8px); }
@@ -24,6 +26,8 @@
                       text-shadow:0 0 24px rgba(34,211,238,.5); }
   .login-card h1 { font:700 17px var(--mono); color:var(--accent); text-align:center;
                    letter-spacing:.22em; }
+  .login-card .flag { width:52px; align-self:center; border-radius:4px;
+                      box-shadow:0 2px 12px rgba(0,0,0,.55); }
   .login-card p { color:var(--dim); font-size:12px; text-align:center; margin-bottom:8px; }
   .login-card input { background:#0A1524; border:1px solid var(--border); border-radius:8px;
                       color:var(--text); padding:10px 12px; font-size:13px; font-family:inherit; }
@@ -160,6 +164,11 @@
   <form class="login-card" onsubmit="return doLogin(event)">
     <div class="logo">⬢</div>
     <h1>GEOAI · SOC</h1>
+    <svg class="flag" viewBox="0 0 60 40" aria-label="Flag of Laos">
+      <rect width="60" height="40" fill="#CE1126"/>
+      <rect y="10" width="60" height="20" fill="#002868"/>
+      <circle cx="30" cy="20" r="7.5" fill="#fff"/>
+    </svg>
     <p>FTTH Security Intelligence Platform<br>Lao Telecommunication — Internet LTC Team</p>
     <input id="lu" placeholder="Username" autocomplete="username" required>
     <input id="lp" type="password" placeholder="Password" autocomplete="current-password" required>
