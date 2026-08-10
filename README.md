@@ -52,9 +52,19 @@ python3 simulator.py --check
 
 Attacks auto-spawn every ~1–2 minutes from a random origin province, or trigger one manually with the ⚡ button.
 
+## Login
+
+The dashboard is gated by a sign-in screen. Default credentials: **admin / geoai2026** — change them via environment variables before starting:
+
+```bash
+GEOAI_USER=youruser GEOAI_PASS=yourpass python3 simulator.py
+```
+
+All `/api/*` endpoints require the session token (`X-Auth` header) issued by `POST /api/login` — including `/api/log`, so real log collectors must log in first and send the token.
+
 ## SOC interface
 
-Three views in the menu bar:
+Three views in the sidebar menu:
 
 - **Overview** — country-wide map of all 18 Laos provinces, ONT status markers, province risk rings, active attack path (origin → target, dashed red line), hotspot alerts with origin province, top attacker IPs, live event feed.
 - **Analytics** — attack statistics with 24-hour / 30-day / 12-month range toggle: attacks-over-time chart, most-attacked provinces, attack-origin provinces. Demo mode seeds a year of synthetic history; live mode only accumulates real detections.

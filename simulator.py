@@ -22,7 +22,9 @@ Self-check: python3 simulator.py --check
 """
 import csv
 import json
+import os
 import random
+import secrets
 import sys
 import threading
 import time
@@ -352,19 +354,29 @@ class Simulation:
 # --- HTTP server -------------------------------------------------------------
 SIM = None
 DASHBOARD = Path(__file__).with_name("dashboard.html")
+# ponytail: single shared login, in-memory tokens — swap for real accounts/JWT
+# when this needs per-operator audit trails
+AUTH_USER = os.environ.get("GEOAI_USER", "admin")
+AUTH_PASS = os.environ.get("GEOAI_PASS", "geoai2026")
+TOKENS = set()
 
 
 class Handler(BaseHTTPRequestHandler):
-    def _send(self, body, ctype="application/json"):
+    def _send(self, body, ctype="application/json", status=200):
         data = body if isinstance(body, bytes) else json.dumps(body).encode()
-        self.send_response(200)
+        self.send_response(status)
         self.send_header("Content-Type", ctype)
         self.send_header("Content-Length", str(len(data)))
         self.end_headers()
         self.wfile.write(data)
 
+    def _authed(self):
+        return self.headers.get("X-Auth") in TOKENS
+
     def do_GET(self):
         url = urlparse(self.path)
+        if url.path.startswith("/api/") and not self._authed():
+            return self._send({"error": "unauthorized"}, status=401)
         if url.path == "/api/state":
             self._send(SIM.state())
         elif url.path == "/api/stats":
@@ -376,6 +388,18 @@ class Handler(BaseHTTPRequestHandler):
             self.send_error(404)
 
     def do_POST(self):
+        if self.path == "/api/login":
+            try:
+                body = json.loads(self.rfile.read(int(self.headers.get("Content-Length", 0))))
+            except ValueError:
+                return self.send_error(400, "expected login json")
+            if body.get("user") == AUTH_USER and body.get("pass") == AUTH_PASS:
+                tok = secrets.token_hex(16)
+                TOKENS.add(tok)
+                return self._send({"ok": True, "token": tok, "user": AUTH_USER})
+            return self._send({"ok": False}, status=401)
+        if not self._authed():
+            return self._send({"error": "unauthorized"}, status=401)
         if self.path == "/api/log":
             try:
                 body = self.rfile.read(int(self.headers.get("Content-Length", 0)))
@@ -464,7 +488,30 @@ def check():
     assert live.onts[dev]["status"] == "compromised", "ingested cred_change ignored"
     assert live.state()["top_ips"][0]["ip"] == "198.51.100.7", "src ip not aggregated"
     assert not live.history, "live mode must not backfill fake history"
-    print(f"self-check OK: provinces + stats + live ingestion (recovered {n} ONTs)")
+    # HTTP auth gate
+    import urllib.error
+    import urllib.request
+    global SIM
+    SIM = Simulation(seed=1)
+    srv = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+    threading.Thread(target=srv.serve_forever, daemon=True).start()
+    base = f"http://127.0.0.1:{srv.server_address[1]}"
+
+    def req(path, data=None, tok=""):
+        r = urllib.request.Request(base + path, data=data, headers={"X-Auth": tok})
+        try:
+            with urllib.request.urlopen(r) as resp:
+                return resp.status, json.loads(resp.read())
+        except urllib.error.HTTPError as e:
+            return e.code, None
+
+    assert req("/api/state")[0] == 401, "state served without login"
+    assert req("/api/login", b'{"user":"admin","pass":"wrong"}')[0] == 401, "bad creds accepted"
+    code, j = req("/api/login", json.dumps({"user": AUTH_USER, "pass": AUTH_PASS}).encode())
+    assert code == 200 and j["token"], "login failed"
+    assert req("/api/state", tok=j["token"])[0] == 200, "token rejected"
+    srv.shutdown()
+    print(f"self-check OK: provinces + stats + live ingestion + auth (recovered {n} ONTs)")
 
 
 if __name__ == "__main__":

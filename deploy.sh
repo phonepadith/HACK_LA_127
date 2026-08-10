@@ -18,8 +18,8 @@ tar cz simulator.py dashboard.html README.md | ssh -p $PORT $HOST "
   cd $DIR
   nohup python3 simulator.py --port $APP_PORT > geoai.log 2>&1 < /dev/null &
   sleep 2
-  if curl -sf localhost:$APP_PORT/api/state > /dev/null 2>&1 \
-     || python3 -c 'import urllib.request as u; u.urlopen(\"http://localhost:$APP_PORT/api/state\")' 2>/dev/null; then
+  if curl -sf localhost:$APP_PORT/ > /dev/null 2>&1 \
+     || python3 -c 'import urllib.request as u; u.urlopen(\"http://localhost:$APP_PORT/\")' 2>/dev/null; then
     echo 'DEPLOYED OK — dashboard: http://202.137.130.115:$APP_PORT'
   else
     echo 'DEPLOY FAILED — last log lines:'; tail -5 geoai.log; exit 1
