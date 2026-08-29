@@ -134,6 +134,29 @@
                  align-items:flex-start; }
   #view-events .card { flex:1; }
 
+  /* --- Docs --- */
+  #view-docs { flex-direction:column; overflow-y:auto; padding:20px 24px 40px; gap:16px; }
+  #view-docs .card { max-width:1080px; }
+  #view-docs h1 { font:700 18px var(--mono); color:var(--accent); letter-spacing:.08em; }
+  #view-docs .sub { color:var(--dim); font-size:12px; margin-top:4px; }
+  #view-docs h3 { margin-bottom:12px; }
+  #view-docs p { color:var(--dim); font-size:12.5px; line-height:1.7; max-width:900px; }
+  #view-docs p b { color:var(--text); }
+  #view-docs table { width:100%; border-collapse:collapse; font-size:12px; }
+  #view-docs th { text-align:left; color:var(--dim); font-size:10.5px; text-transform:uppercase;
+                  letter-spacing:.05em; padding:6px 10px; border-bottom:1px solid var(--border); }
+  #view-docs td { padding:7px 10px; border-bottom:1px solid var(--border); vertical-align:top; }
+  #view-docs td:first-child { font-family:var(--mono); font-size:11px; color:var(--accent);
+                              white-space:nowrap; }
+  .flow { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin:6px 0; }
+  .fbox { background:var(--panel2); border:1px solid var(--border); border-radius:8px;
+          padding:8px 12px; font-size:12px; text-align:center; }
+  .fbox small { display:block; color:var(--dim); font-size:10.5px; margin-top:2px; }
+  .fbox.src { border-color:rgba(251,91,110,.5); }
+  .fbox.ai { border-color:rgba(34,211,238,.5); }
+  .fbox.ok { border-color:rgba(52,211,153,.5); }
+  .farrow { color:var(--accent); font-size:16px; }
+
   /* --- Mobile --- */
   @media (max-width: 768px) {
     #app.on { flex-direction:column; }
@@ -185,6 +208,7 @@
   <button class="tab active" data-view="overview">🗺 Overview</button>
   <button class="tab" data-view="analytics">📊 Analytics</button>
   <button class="tab" data-view="events">📋 Events</button>
+  <button class="tab" data-view="docs">📖 Docs</button>
   <div class="foot">
     <span id="mode">…</span>
     <span class="env">Laos · 18 provinces</span>
@@ -267,6 +291,145 @@
         <h3>Attack origins (source province)</h3>
         <div class="chartbox" id="chart-origin"></div>
       </div>
+    </div>
+  </div>
+
+  <div class="view" id="view-docs">
+    <div>
+      <h1>⬢ GEOAI · SOC — SYSTEM DOCUMENTATION</h1>
+      <div class="sub">GeoAI FTTH Security Intelligence Platform · Lao Telecommunication —
+        Internet LTC Team · prototype</div>
+    </div>
+
+    <div class="card">
+      <h3>1 · What this platform does</h3>
+      <p>Broadband ISPs face attacks where intruders take over FTTH ONT/router accounts and
+      change customer credentials, cutting service. Recovering customers one by one is slow and
+      costly. This platform detects those attacks from <b>authentication logs</b>, correlates
+      them <b>geographically</b> across all 18 Laos provinces (GeoAI), raises prioritized
+      hotspot alerts, and performs <b>batch recovery via the ACS</b> — approved by an operator
+      with one click, automatically by the AI, or by a field <b>edge sensor</b>
+      (Raspberry Pi).</p>
+    </div>
+
+    <div class="card">
+      <h3>2 · System architecture</h3>
+      <div class="flow">
+        <div class="fbox">FTTH plant<small>~263 ONTs · 18 province zones (OLT)</small></div>
+        <span class="farrow">→</span>
+        <div class="fbox">Auth log ingestion<small>POST /api/log · login_fail / cred_change
+          + src IP (demo mode simulates this)</small></div>
+        <span class="farrow">→</span>
+        <div class="fbox ai">GeoAI server · simulator.py<small>detection engine · zone risk ·
+          alerts · history · ACS stub · auth</small></div>
+        <span class="farrow">→</span>
+        <div class="fbox">SOC dashboard<small>this page · login-gated ·
+          map / analytics / events</small></div>
+      </div>
+      <div class="flow">
+        <div class="fbox ok">📡 Edge sensor · pi_agent.py<small>Raspberry Pi 3 ·
+          192.168.0.110 · Vientiane riverside site</small></div>
+        <span class="farrow">⇄</span>
+        <div class="fbox ai">GeoAI server API<small>polls state every 3 s ·
+          triggers recovery · actions attributed on the live feed</small></div>
+      </div>
+      <p>Everything is dependency-free: the server and the sensor are single Python-stdlib
+      files; the dashboard uses Leaflet + ApexCharts from CDN with Google street tiles
+      (keyless).</p>
+    </div>
+
+    <div class="card">
+      <h3>3 · Process flow — attack, detection, recovery</h3>
+      <div class="flow">
+        <div class="fbox src">Attacker<small>origin province · credential stuffing</small></div>
+        <span class="farrow">→</span>
+        <div class="fbox src">Failed logins on ONTs<small>+ credential change when the
+          attacker gets in → service down</small></div>
+        <span class="farrow">→</span>
+        <div class="fbox ai">AI detection<small>≥ 5 fails / 60 s → suspicious ·
+          cred_change → compromised</small></div>
+        <span class="farrow">→</span>
+        <div class="fbox ai">GeoAI zone scoring<small>risk 0–1 per province ·
+          ≥ 3 affected ONTs → hotspot alert (low→critical)</small></div>
+        <span class="farrow">→</span>
+        <div class="fbox ok">Batch recovery (ACS)<small>operator click · AI auto-approve ·
+          or edge sensor</small></div>
+        <span class="farrow">→</span>
+        <div class="fbox ok">Report<small>live event feed · attack history ·
+          analytics (24 h / 30 d / 12 m)</small></div>
+      </div>
+      <p>During an attack the map draws the <b>origin → target path</b> as an animated tracer
+      line, colors affected ONTs orange/red, and grows the target zone's risk ring. Attacker
+      source IPs are ranked over a 5-minute window. Every alert carries a recommended action;
+      recovery resets all affected ONTs in the zone and restores service in one step.</p>
+    </div>
+
+    <div class="card">
+      <h3>4 · Edge sensor process (Raspberry Pi)</h3>
+      <div class="flow">
+        <div class="fbox">Login to server<small>POST /api/login → session token</small></div>
+        <span class="farrow">→</span>
+        <div class="fbox">Poll /api/state<small>every 3 s · CPU / RAM / temp sampled
+          from /proc, /sys</small></div>
+        <span class="farrow">→</span>
+        <div class="fbox src">Detect hacked ONTs<small>any zone with ≥ 1 compromised</small></div>
+        <span class="farrow">→</span>
+        <div class="fbox ok">Recover zone<small>POST /api/recover/&lt;zone&gt;?by=pi-sensor@host</small></div>
+        <span class="farrow">→</span>
+        <div class="fbox ok">Report<small>appears on this dashboard's feed,
+          credited to the device</small></div>
+      </div>
+      <p>The sensor serves its own monitor UI on <b>http://192.168.0.110:8080</b> (map, status
+      chips, hardware stats, hack-simulation button, auto-recover toggle) and is pinned on the
+      map at its physical site (17.86770, 102.61694). Deploy/update with
+      <b>./deploy_pi.sh</b>.</p>
+    </div>
+
+    <div class="card">
+      <h3>5 · API reference</h3>
+      <table>
+        <tr><th>Endpoint</th><th>Purpose</th></tr>
+        <tr><td>POST /api/login</td><td>{"user","pass"} → session token; all other endpoints
+          require it as the X-Auth header</td></tr>
+        <tr><td>GET /api/state</td><td>Full live state: ONTs, zones + risk, alerts, events,
+          active attack path, attacker IPs, KPIs</td></tr>
+        <tr><td>GET /api/stats?range=day|month|year</td><td>Attack history bucketed for the
+          analytics charts, with per-zone and per-origin breakdowns</td></tr>
+        <tr><td>POST /api/log</td><td>Real-case ingestion: auth events from OLT/ACS/RADIUS
+          collectors (single event or array)</td></tr>
+        <tr><td>POST /api/recover/&lt;zone&gt;?by=&lt;label&gt;</td><td>Batch-reset every
+          affected ONT in a zone; label shows in the feed</td></tr>
+        <tr><td>POST /api/auto</td><td>{"enabled":bool} — AI auto-approved recovery
+          on/off</td></tr>
+        <tr><td>POST /api/attack</td><td>Demo: launch a cross-province attack
+          (simulation mode only)</td></tr>
+      </table>
+    </div>
+
+    <div class="card">
+      <h3>6 · Configuration &amp; deployment</h3>
+      <table>
+        <tr><th>Item</th><th>Value</th></tr>
+        <tr><td>Modes</td><td>python3 simulator.py (demo, self-driving attacks) ·
+          --live (only ingested logs drive detection) · --port N</td></tr>
+        <tr><td>Detection tuning</td><td>WINDOW=60 s · SUSPICIOUS_FAILS=5 · TAKEOVER_FAILS=8 ·
+          ALERT_MIN_AFFECTED=3 — constants at the top of simulator.py</td></tr>
+        <tr><td>Login</td><td>GEOAI_USER / GEOAI_PASS env vars (default admin/geoai2026 —
+          change in production)</td></tr>
+        <tr><td>Real inventory</td><td>devices.csv (id,olt,olt_name,lat,lon) next to
+          simulator.py replaces the demo topology</td></tr>
+        <tr><td>Production server</td><td>CEIT-LTC-SERVER :3030 via ./deploy.sh ·
+          fronted by Cloudflare tunnel</td></tr>
+        <tr><td>Edge sensor</td><td>Raspberry Pi 3 · /home/kobi/geoai-sensor ·
+          ./deploy_pi.sh · GEOAI_URL / SENSOR_LAT / SENSOR_LON env vars ·
+          cloudflared → geoai-node-01.laopadit.com</td></tr>
+        <tr><td>Source</td><td>github.com/phonepadith/geoai-security ·
+          self-checks: simulator.py --check · pi_agent.py --check</td></tr>
+      </table>
+      <p style="margin-top:10px">Prototype ceilings (marked <b>ponytail:</b> in code): the ACS
+      recovery is a stub awaiting the vendor TR-069/NETCONF API; login is a single shared
+      account with in-memory tokens; the keyless Google tile endpoint is unofficial — swap for
+      OpenStreetMap or a keyed plan for production.</p>
     </div>
   </div>
 
