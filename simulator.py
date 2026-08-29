@@ -169,6 +169,8 @@ class Simulation:
     def start_attack(self, olt_id=None):
         if self.attack:
             return
+        if olt_id not in self.names:
+            olt_id = None
         olt_id = olt_id or self.rng.choice(self.olts)["id"]
         origin = self.rng.choice([o for o in self.olts if o["id"] != olt_id])
         pool = [o for o in self.onts.values() if o["olt"] == olt_id]
@@ -333,7 +335,11 @@ class Simulation:
                           "from": {"name": org["name"], "lat": org["lat"], "lon": org["lon"]},
                           "to": {"name": tgt["name"], "lat": tgt["lat"], "lon": tgt["lon"]}}
             now = time.time()
-            sensors = [dict(s, online=now - s["ts"] < 15, age=int(now - s["ts"]))
+            hot_zones = {o["olt"] for o in self.onts.values() if o["status"] != "normal"}
+            if self.attack:
+                hot_zones.add(self.attack["olt"])
+            sensors = [dict(s, online=now - s["ts"] < 15, age=int(now - s["ts"]),
+                            attacked=s.get("zone") in hot_zones)
                        for s in self.sensors.values()]
             return {
                 "time": self.ts(),
@@ -414,7 +420,7 @@ class Handler(BaseHTTPRequestHandler):
             with SIM.lock:
                 known = name in SIM.sensors
                 SIM.sensors[name] = {k: body.get(k) for k in
-                                     ("name", "site", "lat", "lon", "cpu", "ram",
+                                     ("name", "site", "zone", "lat", "lon", "cpu", "ram",
                                       "temp", "recovered")}
                 SIM.sensors[name]["ts"] = time.time()
                 if not known:
@@ -441,8 +447,15 @@ class Handler(BaseHTTPRequestHandler):
                                   f"by operator")
             self._send({"ok": True, "auto_recover": enabled})
         elif self.path == "/api/attack":
+            zone = None
+            try:
+                n = int(self.headers.get("Content-Length", 0))
+                if n:
+                    zone = json.loads(self.rfile.read(n)).get("zone")
+            except ValueError:
+                pass
             with SIM.lock:
-                SIM.start_attack()
+                SIM.start_attack(zone)
             self._send({"ok": True})
         elif self.path.startswith("/api/recover/"):
             url = urlparse(self.path)
@@ -533,12 +546,17 @@ def check():
     code, j = req("/api/login", json.dumps({"user": AUTH_USER, "pass": AUTH_PASS}).encode())
     assert code == 200 and j["token"], "login failed"
     assert req("/api/state", tok=j["token"])[0] == 200, "token rejected"
-    hb = json.dumps({"name": "pi-test", "site": "bench", "lat": 17.9, "lon": 102.6,
-                     "cpu": 1.2, "ram": 34.0, "temp": 36.5, "recovered": 3}).encode()
+    hb = json.dumps({"name": "pi-test", "site": "bench", "zone": "VTE", "lat": 17.9,
+                     "lon": 102.6, "cpu": 1.2, "ram": 34.0, "temp": 36.5,
+                     "recovered": 3}).encode()
     assert req("/api/sensor", hb, tok=j["token"])[0] == 200, "heartbeat rejected"
     sensors = req("/api/state", tok=j["token"])[1]["sensors"]
     assert sensors and sensors[0]["name"] == "pi-test" and sensors[0]["online"], \
         "sensor missing from state"
+    assert not sensors[0]["attacked"], "sensor attacked before any attack"
+    assert req("/api/attack", b'{"zone": "VTE"}', tok=j["token"])[0] == 200
+    sensors = req("/api/state", tok=j["token"])[1]["sensors"]
+    assert sensors[0]["attacked"], "sensor not flagged when its zone is attacked"
     srv.shutdown()
     print(f"self-check OK: provinces + stats + live ingestion + auth (recovered {n} ONTs)")
 

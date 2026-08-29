@@ -34,6 +34,7 @@ NAME = "pi-sensor@" + socket.gethostname()
 SENSOR_LAT = float(os.environ.get("SENSOR_LAT", "17.8677045"))
 SENSOR_LON = float(os.environ.get("SENSOR_LON", "102.6169395"))
 SENSOR_SITE = os.environ.get("SENSOR_SITE", "Vientiane riverside site")
+SENSOR_ZONE = os.environ.get("SENSOR_ZONE", "VTE")  # zone this sensor guards
 
 
 _prev_cpu = None
@@ -86,6 +87,7 @@ class Agent:
         self.last_poll = "never"
         self.auto = True
         self.recovered = 0
+        self.attacked = False
         self.sys = {}
         self.events = []
         self.lock = threading.Lock()
@@ -119,8 +121,8 @@ class Agent:
         return n
 
     def attack(self):
-        self._req("/api/attack", data=b"")
-        self.log("hack simulation requested on ONT server")
+        self._req("/api/attack", data=json.dumps({"zone": SENSOR_ZONE}).encode())
+        self.log(f"hack simulation requested on this sensor's zone ({SENSOR_ZONE})")
 
     def poll(self):
         try:
@@ -144,9 +146,16 @@ class Agent:
                      f"{len(s['olts'])} zones)")
         self.state = s
         self.last_poll = time.strftime("%H:%M:%S")
+        was = self.attacked
+        self.attacked = (any(o["status"] != "normal" and o["olt"] == SENSOR_ZONE
+                             for o in s.get("onts", []))
+                         or (s.get("attack") or {}).get("zone") == SENSOR_ZONE)
+        if self.attacked and not was:
+            self.log(f"⚠ ATTACK on this sensor's zone ({SENSOR_ZONE}) detected")
         try:  # heartbeat: report status so the main dashboard shows this sensor
             self._req("/api/sensor", data=json.dumps({
-                "name": NAME, "site": SENSOR_SITE, "lat": SENSOR_LAT, "lon": SENSOR_LON,
+                "name": NAME, "site": SENSOR_SITE, "zone": SENSOR_ZONE,
+                "lat": SENSOR_LAT, "lon": SENSOR_LON,
                 "recovered": self.recovered, **self.sys}).encode())
         except OSError:
             pass
@@ -162,6 +171,7 @@ class Agent:
             return {
                 "name": NAME, "server": GEOAI_URL, "connected": self.connected,
                 "location": {"lat": SENSOR_LAT, "lon": SENSOR_LON},
+                "zone": SENSOR_ZONE, "attacked": self.attacked,
                 "sys": self.sys,
                 "last_poll": self.last_poll, "auto": self.auto,
                 "recovered": self.recovered, "events": self.events[::-1],
@@ -207,6 +217,10 @@ border-radius:5px;box-shadow:0 0 10px rgba(34,211,238,.65);display:flex;align-it
 justify-content:center}
 .sensor-box i{width:6px;height:6px;border-radius:50%;background:var(--ok);
 animation:led 1.2s infinite}
+.sensor-box.atk{border-color:var(--bad);box-shadow:0 0 14px rgba(251,91,110,.9)}
+.sensor-box.atk i{background:var(--bad);animation:led .4s infinite}
+#atkchip{display:none;color:var(--bad);border-color:var(--bad);font-weight:700;
+animation:led 1s infinite}
 @keyframes led{50%{opacity:.15}}
 @media(max-width:768px){main{flex-direction:column}#map{flex:none;height:45vh}
 aside{width:100%;border-left:0;border-top:1px solid var(--border)}}
@@ -221,13 +235,15 @@ aside{width:100%;border-left:0;border-top:1px solid var(--border)}}
   <span class="chip">CPU <span id="cpu">–</span></span>
   <span class="chip">RAM <span id="ram">–</span></span>
   <span class="chip" id="tempchip" style="display:none">🌡 <span id="temp">–</span></span>
+  <span class="chip">zone <span id="zone">–</span></span>
+  <span class="chip" id="atkchip">⚠ ZONE UNDER ATTACK</span>
 </header>
 <main>
   <div id="map"></div>
   <aside>
     <h2>Sensor controls</h2>
     <label><input type="checkbox" id="auto" checked> Auto-recover hacked ONTs</label>
-    <button id="atk">⚡ Simulate ONT hack on server</button>
+    <button id="atk">⚡ Simulate hack on this sensor's zone</button>
     <h2>Sensor action log</h2>
     <div class="log" id="log"></div>
   </aside>
@@ -257,6 +273,9 @@ async function tick() {
     document.getElementById('tempchip').style.display = '';
     document.getElementById('temp').textContent = d.sys.temp + '°C';
   }
+  document.getElementById('zone').textContent = d.zone;
+  document.getElementById('atkchip').style.display = d.attacked ? '' : 'none';
+  document.querySelector('.sensor-box')?.classList.toggle('atk', !!d.attacked);
   const conn = document.getElementById('conn');
   conn.textContent = d.connected ? '● connected' : '● offline';
   conn.className = 'chip ' + (d.connected ? 'on' : 'off');

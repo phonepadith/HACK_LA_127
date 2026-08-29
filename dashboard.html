@@ -110,6 +110,9 @@
                   animation:led 1.2s infinite; }
   .sensor-box.off { border-color:var(--bad); box-shadow:none; opacity:.75; }
   .sensor-box.off i { background:var(--bad); animation:none; }
+  .sensor-box.atk { border-color:var(--bad); box-shadow:0 0 14px rgba(251,91,110,.9); }
+  .sensor-box.atk i { background:var(--bad); animation:led .4s infinite; }
+  .senrow .atktag { color:var(--bad); font-weight:700; animation:led 1s infinite; }
   @keyframes led { 50% { opacity:.15; } }
   .senrow { display:flex; gap:8px; align-items:flex-start; padding:6px 0;
             border-bottom:1px solid var(--border); font-size:12px; }
@@ -525,33 +528,38 @@ const ontMarkers = {}, oltLayers = {}, zoneIndex = {};
 
 /* edge sensor pins — driven by heartbeats in /api/state */
 const sensorPins = {};
-function sensorIcon(online) {
+function sensorIcon(online, attacked) {
+  const cls = !online ? ' off' : attacked ? ' atk' : '';
   return L.divIcon({ className: '', iconSize: [24, 24], iconAnchor: [12, 12],
-    html: `<div class="sensor-box${online ? '' : ' off'}"><i></i></div>` });
+    html: `<div class="sensor-box${cls}"><i></i></div>` });
 }
 function renderSensors(list) {
   for (const x of list) {
     if (x.lat == null) continue;
     let p = sensorPins[x.name];
     if (!p) {
-      p = sensorPins[x.name] = { online: null,
-        marker: L.marker([x.lat, x.lon], { icon: sensorIcon(true), zIndexOffset: 1000 })
-          .addTo(map) };
+      p = sensorPins[x.name] = { key: null,
+        marker: L.marker([x.lat, x.lon], { icon: sensorIcon(true, false),
+          zIndexOffset: 1000 }).addTo(map) };
     }
-    if (p.online !== x.online) {  // only swap icon on change so the LED keeps blinking
-      p.marker.setIcon(sensorIcon(x.online));
-      p.online = x.online;
+    const key = `${x.online}|${x.attacked}`;
+    if (p.key !== key) {  // only swap icon on change so the LED keeps blinking
+      p.marker.setIcon(sensorIcon(x.online, x.attacked));
+      p.key = key;
     }
-    p.marker.bindTooltip(`${x.name} — ${x.online ? 'ONLINE' : 'OFFLINE'}<br>` +
-      `${x.site || ''}<br>CPU ${x.cpu ?? '–'}% · RAM ${x.ram ?? '–'}% · ` +
-      `${x.temp ?? '–'}°C · ${x.recovered ?? 0} ONTs recovered`, { direction: 'top' });
+    const st = !x.online ? 'OFFLINE' : x.attacked ? '⚠ ZONE UNDER ATTACK' : 'ONLINE';
+    p.marker.bindTooltip(`${x.name} — ${st}<br>` +
+      `${x.site || ''} · zone ${x.zone || '–'}<br>CPU ${x.cpu ?? '–'}% · ` +
+      `RAM ${x.ram ?? '–'}% · ${x.temp ?? '–'}°C · ${x.recovered ?? 0} ONTs recovered`,
+      { direction: 'top' });
   }
   document.getElementById('sensors').innerHTML = list.length
     ? list.map(x => `
       <div class="senrow">
         <span class="dot ${x.online ? 'on' : 'off'}"></span>
-        <div><b>${x.name}</b> — ${x.online ? 'online' : `offline (${x.age}s ago)`}
-          <div class="sub">${x.site || ''}</div>
+        <div><b>${x.name}</b> — ${!x.online ? `offline (${x.age}s ago)`
+            : x.attacked ? '<span class="atktag">⚠ ZONE UNDER ATTACK</span>' : 'online'}
+          <div class="sub">${x.site || ''} · zone ${x.zone || '–'}</div>
           <div class="sub">CPU ${x.cpu ?? '–'}% · RAM ${x.ram ?? '–'}% · ${x.temp ?? '–'}°C
             · ${x.recovered ?? 0} ONTs recovered</div>
         </div>
