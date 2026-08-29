@@ -97,7 +97,10 @@ class Agent:
             del self.events[:-60]
 
     def _req(self, path, data=None, auth=True):
-        headers = {"X-Auth": self.token or ""} if auth else {}
+        # identify ourselves: Cloudflare blocks the default Python-urllib agent
+        headers = {"User-Agent": "GeoAI-EdgeSensor/1.0"}
+        if auth:
+            headers["X-Auth"] = self.token or ""
         r = urllib.request.Request(GEOAI_URL + path, data=data, headers=headers)
         with urllib.request.urlopen(r, timeout=6) as resp:
             return json.loads(resp.read())
