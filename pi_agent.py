@@ -179,7 +179,9 @@ padding:3px 10px}
 #conn.on{color:var(--ok);border-color:var(--ok)}
 #conn.off{color:var(--bad);border-color:var(--bad)}
 main{flex:1;display:flex;min-height:0}
-#map{flex:1}
+#map{flex:1;background:var(--bg)}
+.leaflet-tile-pane{filter:invert(92%) hue-rotate(180deg) brightness(.9) contrast(.92)
+saturate(.55)}
 aside{width:340px;border-left:1px solid var(--border);background:var(--panel);
 overflow-y:auto;padding:12px 14px}
 aside h2{font-size:11px;text-transform:uppercase;color:var(--dim);letter-spacing:.05em;
