@@ -70,6 +70,17 @@ Three views in the sidebar menu:
 - **Analytics** — attack statistics with 24-hour / 30-day / 12-month range toggle: attacks-over-time chart, most-attacked provinces, attack-origin provinces. Demo mode seeds a year of synthetic history; live mode only accumulates real detections.
 - **Events** — full event feed and attacker source list.
 
+## Raspberry Pi edge sensor
+
+[pi_agent.py](pi_agent.py) turns a Raspberry Pi into an edge monitor/sensor for the ONT server: it logs into the GeoAI API, polls the network state, detects hacked ONTs, performs the batch recovery itself, and every recovery it makes appears in the main GeoAI dashboard's live feed attributed to the sensor (`pi-sensor@<hostname>`). It serves its own monitor UI on port 8080 — server map, connection status, hack-simulation button, auto-recover toggle, and an action log.
+
+```bash
+./deploy_pi.sh                                  # deploy + start on the Pi
+GEOAI_URL=http://server:port ./deploy_pi.sh     # point sensor elsewhere
+```
+
+Sensor config env vars: `GEOAI_URL`, `GEOAI_USER`, `GEOAI_PASS`, `PI_PORT`. Tip: turn OFF the dashboard's own "AI auto-approve recovery" toggle when demoing the Pi, so the recovery visibly comes from the device.
+
 ## API
 
 - `GET /api/state` — full state (ONTs, zones, alerts, events, active attack path, stats)

@@ -278,9 +278,9 @@ class Simulation:
                             f"{self.names.get(olt_id, olt_id)} — service up ({by})", olt_id)
         return n
 
-    def recover(self, olt_id):
+    def recover(self, olt_id, by="operator"):
         with self.lock:
-            return self._do_recover(olt_id)
+            return self._do_recover(olt_id, by)
 
     # --- statistics for the analytics view ---------------------------------------
     def stats_range(self, rng="day"):
@@ -424,8 +424,10 @@ class Handler(BaseHTTPRequestHandler):
                 SIM.start_attack()
             self._send({"ok": True})
         elif self.path.startswith("/api/recover/"):
-            olt = self.path.rsplit("/", 1)[1]
-            self._send({"ok": True, "reset": SIM.recover(olt)})
+            url = urlparse(self.path)
+            olt = url.path.rsplit("/", 1)[1]
+            by = parse_qs(url.query).get("by", ["operator"])[0][:48]
+            self._send({"ok": True, "reset": SIM.recover(olt, by)})
         else:
             self.send_error(404)
 
