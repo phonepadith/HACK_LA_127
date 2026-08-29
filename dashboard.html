@@ -100,6 +100,9 @@
   .feed .locate:hover { border-color:var(--accent); }
   .attack-path { animation: dashflow .5s linear infinite; }
   @keyframes dashflow { to { stroke-dashoffset:-32; } }
+  .sensor-pin { font-size:20px; line-height:1; filter:drop-shadow(0 0 7px #22D3EE);
+                animation:sensorpulse 1.6s ease-in-out infinite; }
+  @keyframes sensorpulse { 50% { filter:drop-shadow(0 0 14px #22D3EE); } }
   #attackBtn { width:100%; background:#12203A; color:var(--bad); border:1px solid var(--border);
                padding:7px; border-radius:6px; cursor:pointer; font-size:12px; }
   #attackBtn:hover { border-color:var(--bad); }
@@ -337,6 +340,17 @@ L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
   { attribution: '&copy; OpenStreetMap &copy; CARTO', maxZoom: 18 }).addTo(map);
 const COLORS = { normal:'#34D399', suspicious:'#FFA857', compromised:'#FB5B6E' };
 const ontMarkers = {}, oltLayers = {}, zoneIndex = {};
+
+/* registered edge sensors (Raspberry Pi field devices) */
+const SENSORS = [{ name: 'pi-sensor (Raspberry Pi 3)', lat: 17.8677045, lon: 102.6169395,
+                   site: 'Vientiane riverside site' }];
+for (const s of SENSORS) {
+  L.marker([s.lat, s.lon], { icon: L.divIcon({ className: '',
+      html: '<div class="sensor-pin">📡</div>', iconSize: [22, 22], iconAnchor: [11, 11] }),
+      zIndexOffset: 1000 })
+    .bindTooltip(`${s.name}<br>${s.site}<br>${s.lat.toFixed(5)}, ${s.lon.toFixed(5)}`,
+                 { direction: 'top' }).addTo(map);
+}
 let attackKey = null, attackLayers = [], tracerAnim = null;
 function riskColor(r) { return r > 0.5 ? '#FB5B6E' : r > 0.2 ? '#FFA857' : '#22D3EE'; }
 

@@ -30,6 +30,9 @@ GEOAI_PASS = os.environ.get("GEOAI_PASS", "geoai2026")
 PI_PORT = int(os.environ.get("PI_PORT", "8080"))
 POLL_SECONDS = 3
 NAME = "pi-sensor@" + socket.gethostname()
+# physical install location of this sensor (default: Vientiane riverside site)
+SENSOR_LAT = float(os.environ.get("SENSOR_LAT", "17.8677045"))
+SENSOR_LON = float(os.environ.get("SENSOR_LON", "102.6169395"))
 
 
 def zones_to_recover(state):
@@ -114,6 +117,7 @@ class Agent:
         with self.lock:
             return {
                 "name": NAME, "server": GEOAI_URL, "connected": self.connected,
+                "location": {"lat": SENSOR_LAT, "lon": SENSOR_LON},
                 "last_poll": self.last_poll, "auto": self.auto,
                 "recovered": self.recovered, "events": self.events[::-1],
                 "state": self.state,
@@ -151,6 +155,9 @@ color:var(--text);padding:7px 10px;cursor:pointer;font-size:12px;width:100%;marg
 label{display:flex;gap:8px;align-items:center;font-size:12px;margin:6px 0}
 .log div{padding:2px 0;color:var(--dim);font:11px 'IBM Plex Mono',monospace}
 .log .rec{color:var(--ok)}
+.sensor-pin{font-size:20px;line-height:1;filter:drop-shadow(0 0 7px #22D3EE);
+animation:sensorpulse 1.6s ease-in-out infinite}
+@keyframes sensorpulse{50%{filter:drop-shadow(0 0 14px #22D3EE)}}
 @media(max-width:768px){main{flex-direction:column}#map{flex:none;height:45vh}
 aside{width:100%;border-left:0;border-top:1px solid var(--border)}}
 </style></head><body>
@@ -179,6 +186,7 @@ L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
   {attribution: '&copy; OpenStreetMap &copy; CARTO', maxZoom: 18}).addTo(map);
 const C = {normal:'#34D399', suspicious:'#FFA857', compromised:'#FB5B6E'};
 const onts = {}, zones = {};
+let sensorPin = null;
 document.getElementById('atk').onclick = () => fetch('/pi/attack', {method:'POST'});
 document.getElementById('auto').onchange = e =>
   fetch('/pi/auto', {method:'POST', body: JSON.stringify({enabled: e.target.checked})});
@@ -192,6 +200,13 @@ async function tick() {
   const conn = document.getElementById('conn');
   conn.textContent = d.connected ? '● connected' : '● offline';
   conn.className = 'chip ' + (d.connected ? 'on' : 'off');
+  if (!sensorPin && d.location) {
+    sensorPin = L.marker([d.location.lat, d.location.lon], {icon: L.divIcon(
+      {className: '', html: '<div class="sensor-pin">📡</div>', iconSize: [22, 22],
+       iconAnchor: [11, 11]}), zIndexOffset: 1000})
+      .bindTooltip(`${d.name} — edge sensor site<br>${d.location.lat.toFixed(5)}, ` +
+                   d.location.lon.toFixed(5), {direction: 'top'}).addTo(map);
+  }
   document.getElementById('log').innerHTML = d.events.map(e =>
     `<div class="${e.msg.startsWith('RECOVERY') ? 'rec' : ''}">[${e.t}] ${e.msg}</div>`).join('');
   if (!d.state) return;
