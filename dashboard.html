@@ -336,8 +336,8 @@ document.querySelectorAll('.sidebar .tab').forEach(b => b.onclick = () => {
 
 /* --- map --- */
 const map = L.map('map').setView([18.4, 103.5], 7);
-L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-  { attribution: '&copy; OpenStreetMap &copy; CARTO', maxZoom: 18 }).addTo(map);
+L.tileLayer('https://mt{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',
+  { subdomains: '0123', attribution: '&copy; Google', maxZoom: 20 }).addTo(map);
 const COLORS = { normal:'#34D399', suspicious:'#FFA857', compromised:'#FB5B6E' };
 const ontMarkers = {}, oltLayers = {}, zoneIndex = {};
 

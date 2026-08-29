@@ -35,6 +35,39 @@ SENSOR_LAT = float(os.environ.get("SENSOR_LAT", "17.8677045"))
 SENSOR_LON = float(os.environ.get("SENSOR_LON", "102.6169395"))
 
 
+_prev_cpu = None
+
+
+def system_stats():
+    """CPU %, RAM %, and SoC temperature from /proc and /sys (Linux only)."""
+    global _prev_cpu
+    stats = {}
+    try:
+        vals = list(map(int, open("/proc/stat").readline().split()[1:]))
+        total, idle = sum(vals), vals[3] + vals[4]
+        if _prev_cpu:
+            dt, di = total - _prev_cpu[0], idle - _prev_cpu[1]
+            stats["cpu"] = round(100 * (1 - di / dt), 1) if dt else 0.0
+        _prev_cpu = (total, idle)
+    except (OSError, ValueError, IndexError):
+        pass
+    try:
+        mem = {}
+        for line in open("/proc/meminfo"):
+            k, v = line.split(":")
+            mem[k] = int(v.split()[0])
+        stats["ram"] = round(100 * (1 - mem["MemAvailable"] / mem["MemTotal"]), 1)
+        stats["ram_used_mb"] = (mem["MemTotal"] - mem["MemAvailable"]) // 1024
+        stats["ram_total_mb"] = mem["MemTotal"] // 1024
+    except (OSError, ValueError, KeyError):
+        pass
+    try:
+        stats["temp"] = round(int(open("/sys/class/thermal/thermal_zone0/temp").read()) / 1000, 1)
+    except (OSError, ValueError):
+        pass
+    return stats
+
+
 def zones_to_recover(state):
     """Zones with at least one hacked ONT, from a GeoAI /api/state payload."""
     zones = {}
@@ -52,6 +85,7 @@ class Agent:
         self.last_poll = "never"
         self.auto = True
         self.recovered = 0
+        self.sys = {}
         self.events = []
         self.lock = threading.Lock()
         self.log(f"edge sensor {NAME} starting — target {GEOAI_URL}")
@@ -118,6 +152,7 @@ class Agent:
             return {
                 "name": NAME, "server": GEOAI_URL, "connected": self.connected,
                 "location": {"lat": SENSOR_LAT, "lon": SENSOR_LON},
+                "sys": self.sys,
                 "last_poll": self.last_poll, "auto": self.auto,
                 "recovered": self.recovered, "events": self.events[::-1],
                 "state": self.state,
@@ -168,6 +203,9 @@ aside{width:100%;border-left:0;border-top:1px solid var(--border)}}
   <span class="chip" id="conn">connecting…</span>
   <span class="chip">last poll <span id="poll">–</span></span>
   <span class="chip" style="color:var(--ok)"><span id="rec">0</span> ONTs recovered</span>
+  <span class="chip">CPU <span id="cpu">–</span></span>
+  <span class="chip">RAM <span id="ram">–</span></span>
+  <span class="chip" id="tempchip" style="display:none">🌡 <span id="temp">–</span></span>
 </header>
 <main>
   <div id="map"></div>
@@ -182,8 +220,8 @@ aside{width:100%;border-left:0;border-top:1px solid var(--border)}}
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 const map = L.map('map').setView([18.4, 103.5], 6);
-L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-  {attribution: '&copy; OpenStreetMap &copy; CARTO', maxZoom: 18}).addTo(map);
+L.tileLayer('https://mt{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',
+  {subdomains: '0123', attribution: '&copy; Google', maxZoom: 20}).addTo(map);
 const C = {normal:'#34D399', suspicious:'#FFA857', compromised:'#FB5B6E'};
 const onts = {}, zones = {};
 let sensorPin = null;
@@ -197,6 +235,13 @@ async function tick() {
   document.getElementById('srv').textContent = d.server;
   document.getElementById('poll').textContent = d.last_poll;
   document.getElementById('rec').textContent = d.recovered;
+  document.getElementById('cpu').textContent = d.sys.cpu != null ? d.sys.cpu + '%' : 'n/a';
+  document.getElementById('ram').textContent = d.sys.ram != null
+    ? `${d.sys.ram}% (${d.sys.ram_used_mb}/${d.sys.ram_total_mb} MB)` : 'n/a';
+  if (d.sys.temp != null) {
+    document.getElementById('tempchip').style.display = '';
+    document.getElementById('temp').textContent = d.sys.temp + '°C';
+  }
   const conn = document.getElementById('conn');
   conn.textContent = d.connected ? '● connected' : '● offline';
   conn.className = 'chip ' + (d.connected ? 'on' : 'off');
@@ -273,6 +318,7 @@ def main():
 
     def loop():
         while True:
+            AGENT.sys = system_stats()
             AGENT.poll()
             time.sleep(POLL_SECONDS)
     threading.Thread(target=loop, daemon=True).start()
@@ -289,7 +335,11 @@ def check():
     ]}
     assert zones_to_recover(state) == ["VTE", "XKH"], "wrong zones flagged"
     assert zones_to_recover({"onts": []}) == [], "empty state should flag nothing"
-    print("self-check OK: hacked-zone detection")
+    s1 = system_stats(); time.sleep(0.2); s2 = system_stats()
+    assert isinstance(s2, dict), "system_stats must return a dict"
+    if os.path.exists("/proc/stat"):  # Linux: values must actually be present
+        assert "cpu" in s2 and "ram" in s2, "cpu/ram missing on Linux"
+    print("self-check OK: hacked-zone detection + system stats", s2 or "(non-Linux)")
 
 
 if __name__ == "__main__":
