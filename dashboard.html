@@ -103,9 +103,21 @@
   .feed .locate:hover { border-color:var(--accent); }
   .attack-path { animation: dashflow .5s linear infinite; }
   @keyframes dashflow { to { stroke-dashoffset:-32; } }
-  .sensor-pin { font-size:20px; line-height:1; filter:drop-shadow(0 0 7px #22D3EE);
-                animation:sensorpulse 1.6s ease-in-out infinite; }
-  @keyframes sensorpulse { 50% { filter:drop-shadow(0 0 14px #22D3EE); } }
+  .sensor-box { width:20px; height:20px; background:var(--panel); border:2px solid var(--accent);
+                border-radius:5px; box-shadow:0 0 10px rgba(34,211,238,.65);
+                display:flex; align-items:center; justify-content:center; }
+  .sensor-box i { width:6px; height:6px; border-radius:50%; background:var(--ok);
+                  animation:led 1.2s infinite; }
+  .sensor-box.off { border-color:var(--bad); box-shadow:none; opacity:.75; }
+  .sensor-box.off i { background:var(--bad); animation:none; }
+  @keyframes led { 50% { opacity:.15; } }
+  .senrow { display:flex; gap:8px; align-items:flex-start; padding:6px 0;
+            border-bottom:1px solid var(--border); font-size:12px; }
+  .senrow:last-child { border-bottom:0; }
+  .senrow .dot { width:8px; height:8px; border-radius:50%; margin-top:4px; flex:none; }
+  .senrow .dot.on { background:var(--ok); box-shadow:0 0 6px var(--ok); }
+  .senrow .dot.off { background:var(--bad); }
+  .senrow .sub { color:var(--dim); font-size:11px; }
   #attackBtn { width:100%; background:#12203A; color:var(--bad); border:1px solid var(--border);
                padding:7px; border-radius:6px; cursor:pointer; font-size:12px; }
   #attackBtn:hover { border-color:var(--bad); }
@@ -253,6 +265,10 @@
           When on, the AI approves ACS batch recovery automatically as soon as a
           zone's compromise is confirmed — no operator click needed.
         </div>
+      </section>
+      <section>
+        <h2>Edge sensors</h2>
+        <div id="sensors"><div class="none">No edge sensors registered</div></div>
       </section>
       <section>
         <h2>Active hotspot alerts</h2>
@@ -507,15 +523,40 @@ L.tileLayer('https://mt{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',
 const COLORS = { normal:'#34D399', suspicious:'#FFA857', compromised:'#FB5B6E' };
 const ontMarkers = {}, oltLayers = {}, zoneIndex = {};
 
-/* registered edge sensors (Raspberry Pi field devices) */
-const SENSORS = [{ name: 'pi-sensor (Raspberry Pi 3)', lat: 17.8677045, lon: 102.6169395,
-                   site: 'Vientiane riverside site' }];
-for (const s of SENSORS) {
-  L.marker([s.lat, s.lon], { icon: L.divIcon({ className: '',
-      html: '<div class="sensor-pin">📡</div>', iconSize: [22, 22], iconAnchor: [11, 11] }),
-      zIndexOffset: 1000 })
-    .bindTooltip(`${s.name}<br>${s.site}<br>${s.lat.toFixed(5)}, ${s.lon.toFixed(5)}`,
-                 { direction: 'top' }).addTo(map);
+/* edge sensor pins — driven by heartbeats in /api/state */
+const sensorPins = {};
+function sensorIcon(online) {
+  return L.divIcon({ className: '', iconSize: [24, 24], iconAnchor: [12, 12],
+    html: `<div class="sensor-box${online ? '' : ' off'}"><i></i></div>` });
+}
+function renderSensors(list) {
+  for (const x of list) {
+    if (x.lat == null) continue;
+    let p = sensorPins[x.name];
+    if (!p) {
+      p = sensorPins[x.name] = { online: null,
+        marker: L.marker([x.lat, x.lon], { icon: sensorIcon(true), zIndexOffset: 1000 })
+          .addTo(map) };
+    }
+    if (p.online !== x.online) {  // only swap icon on change so the LED keeps blinking
+      p.marker.setIcon(sensorIcon(x.online));
+      p.online = x.online;
+    }
+    p.marker.bindTooltip(`${x.name} — ${x.online ? 'ONLINE' : 'OFFLINE'}<br>` +
+      `${x.site || ''}<br>CPU ${x.cpu ?? '–'}% · RAM ${x.ram ?? '–'}% · ` +
+      `${x.temp ?? '–'}°C · ${x.recovered ?? 0} ONTs recovered`, { direction: 'top' });
+  }
+  document.getElementById('sensors').innerHTML = list.length
+    ? list.map(x => `
+      <div class="senrow">
+        <span class="dot ${x.online ? 'on' : 'off'}"></span>
+        <div><b>${x.name}</b> — ${x.online ? 'online' : `offline (${x.age}s ago)`}
+          <div class="sub">${x.site || ''}</div>
+          <div class="sub">CPU ${x.cpu ?? '–'}% · RAM ${x.ram ?? '–'}% · ${x.temp ?? '–'}°C
+            · ${x.recovered ?? 0} ONTs recovered</div>
+        </div>
+      </div>`).join('')
+    : '<div class="none">No edge sensors registered</div>';
 }
 let attackKey = null, attackLayers = [], tracerAnim = null;
 function riskColor(r) { return r > 0.5 ? '#FB5B6E' : r > 0.2 ? '#FFA857' : '#22D3EE'; }
@@ -630,6 +671,7 @@ async function refresh() {
           ✓ Approve batch recovery (ACS)</button>
       </div>`).join('')
     : '<div class="none">No active alerts</div>';
+  renderSensors(s.sensors || []);
   document.getElementById('ips').innerHTML = ipRows(s.top_ips);
   document.getElementById('ips-full').innerHTML = ipRows(s.top_ips);
   document.getElementById('events').innerHTML = feedRows(s.events.slice(0, 14));

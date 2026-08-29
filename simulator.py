@@ -112,6 +112,7 @@ class Simulation:
         self.ip_hits = []     # (t, src_ip) of hostile auth attempts
         self.history = []     # attack records: {ts, target, origin} (epoch ts)
         self.attack = None    # demo attacker state
+        self.sensors = {}     # edge sensor heartbeats: name -> {..., ts}
         self.auto_recover = False  # AI auto-approves batch recovery when on
         self.next_auto_attack = 15 + rng.uniform(0, 15)
         self.recovered_total = 0
@@ -331,10 +332,14 @@ class Simulation:
                 attack = {"zone": tgt["id"],
                           "from": {"name": org["name"], "lat": org["lat"], "lon": org["lon"]},
                           "to": {"name": tgt["name"], "lat": tgt["lat"], "lon": tgt["lon"]}}
+            now = time.time()
+            sensors = [dict(s, online=now - s["ts"] < 15, age=int(now - s["ts"]))
+                       for s in self.sensors.values()]
             return {
                 "time": self.ts(),
                 "mode": "live" if self.live else "simulation",
                 "auto_recover": self.auto_recover,
+                "sensors": sensors,
                 "olts": [dict(o, risk=round(o.get("risk", 0), 2)) for o in self.olts],
                 "onts": [{k: o[k] for k in ("id", "olt", "lat", "lon", "status")}
                          for o in self.onts.values()],
@@ -400,7 +405,23 @@ class Handler(BaseHTTPRequestHandler):
             return self._send({"ok": False}, status=401)
         if not self._authed():
             return self._send({"error": "unauthorized"}, status=401)
-        if self.path == "/api/log":
+        if self.path == "/api/sensor":
+            try:
+                body = json.loads(self.rfile.read(int(self.headers.get("Content-Length", 0))))
+                name = str(body["name"])[:64]
+            except (ValueError, KeyError):
+                return self.send_error(400, "bad sensor heartbeat")
+            with SIM.lock:
+                known = name in SIM.sensors
+                SIM.sensors[name] = {k: body.get(k) for k in
+                                     ("name", "site", "lat", "lon", "cpu", "ram",
+                                      "temp", "recovered")}
+                SIM.sensors[name]["ts"] = time.time()
+                if not known:
+                    SIM.log("ai", f"edge sensor {name} registered"
+                                  + (f" at {body.get('site')}" if body.get("site") else ""))
+            self._send({"ok": True})
+        elif self.path == "/api/log":
             try:
                 body = self.rfile.read(int(self.headers.get("Content-Length", 0)))
                 n = SIM.ingest(json.loads(body))
@@ -512,6 +533,12 @@ def check():
     code, j = req("/api/login", json.dumps({"user": AUTH_USER, "pass": AUTH_PASS}).encode())
     assert code == 200 and j["token"], "login failed"
     assert req("/api/state", tok=j["token"])[0] == 200, "token rejected"
+    hb = json.dumps({"name": "pi-test", "site": "bench", "lat": 17.9, "lon": 102.6,
+                     "cpu": 1.2, "ram": 34.0, "temp": 36.5, "recovered": 3}).encode()
+    assert req("/api/sensor", hb, tok=j["token"])[0] == 200, "heartbeat rejected"
+    sensors = req("/api/state", tok=j["token"])[1]["sensors"]
+    assert sensors and sensors[0]["name"] == "pi-test" and sensors[0]["online"], \
+        "sensor missing from state"
     srv.shutdown()
     print(f"self-check OK: provinces + stats + live ingestion + auth (recovered {n} ONTs)")
 

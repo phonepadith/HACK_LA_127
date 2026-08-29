@@ -33,6 +33,7 @@ NAME = "pi-sensor@" + socket.gethostname()
 # physical install location of this sensor (default: Vientiane riverside site)
 SENSOR_LAT = float(os.environ.get("SENSOR_LAT", "17.8677045"))
 SENSOR_LON = float(os.environ.get("SENSOR_LON", "102.6169395"))
+SENSOR_SITE = os.environ.get("SENSOR_SITE", "Vientiane riverside site")
 
 
 _prev_cpu = None
@@ -140,6 +141,12 @@ class Agent:
                      f"{len(s['olts'])} zones)")
         self.state = s
         self.last_poll = time.strftime("%H:%M:%S")
+        try:  # heartbeat: report status so the main dashboard shows this sensor
+            self._req("/api/sensor", data=json.dumps({
+                "name": NAME, "site": SENSOR_SITE, "lat": SENSOR_LAT, "lon": SENSOR_LON,
+                "recovered": self.recovered, **self.sys}).encode())
+        except OSError:
+            pass
         if self.auto:
             for zone in zones_to_recover(s):
                 try:
@@ -192,9 +199,12 @@ color:var(--text);padding:7px 10px;cursor:pointer;font-size:12px;width:100%;marg
 label{display:flex;gap:8px;align-items:center;font-size:12px;margin:6px 0}
 .log div{padding:2px 0;color:var(--dim);font:11px 'IBM Plex Mono',monospace}
 .log .rec{color:var(--ok)}
-.sensor-pin{font-size:20px;line-height:1;filter:drop-shadow(0 0 7px #22D3EE);
-animation:sensorpulse 1.6s ease-in-out infinite}
-@keyframes sensorpulse{50%{filter:drop-shadow(0 0 14px #22D3EE)}}
+.sensor-box{width:20px;height:20px;background:var(--panel);border:2px solid var(--accent);
+border-radius:5px;box-shadow:0 0 10px rgba(34,211,238,.65);display:flex;align-items:center;
+justify-content:center}
+.sensor-box i{width:6px;height:6px;border-radius:50%;background:var(--ok);
+animation:led 1.2s infinite}
+@keyframes led{50%{opacity:.15}}
 @media(max-width:768px){main{flex-direction:column}#map{flex:none;height:45vh}
 aside{width:100%;border-left:0;border-top:1px solid var(--border)}}
 </style></head><body>
@@ -249,8 +259,8 @@ async function tick() {
   conn.className = 'chip ' + (d.connected ? 'on' : 'off');
   if (!sensorPin && d.location) {
     sensorPin = L.marker([d.location.lat, d.location.lon], {icon: L.divIcon(
-      {className: '', html: '<div class="sensor-pin">📡</div>', iconSize: [22, 22],
-       iconAnchor: [11, 11]}), zIndexOffset: 1000})
+      {className: '', html: '<div class="sensor-box"><i></i></div>', iconSize: [24, 24],
+       iconAnchor: [12, 12]}), zIndexOffset: 1000})
       .bindTooltip(`${d.name} — edge sensor site<br>${d.location.lat.toFixed(5)}, ` +
                    d.location.lon.toFixed(5), {direction: 'top'}).addTo(map);
   }
