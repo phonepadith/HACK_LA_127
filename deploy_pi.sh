@@ -18,7 +18,9 @@ tar cz pi_agent.py | ssh $PI "
   fuser -k 8080/tcp 2>/dev/null || true
   sleep 1
   cd $DIR
-  GEOAI_URL=$URL nohup python3 pi_agent.py > agent.log 2>&1 < /dev/null &
+  # setsid fully detaches from the SSH login session so systemd-logind
+  # doesn't reap the agent when this connection closes
+  GEOAI_URL=$URL setsid nohup python3 pi_agent.py > agent.log 2>&1 < /dev/null &
   sleep 2
   if curl -sf localhost:8080/pi/state > /dev/null 2>&1; then
     echo 'SENSOR DEPLOYED — monitor UI: http://192.168.0.110:8080'

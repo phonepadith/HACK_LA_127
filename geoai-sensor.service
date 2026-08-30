@@ -1,0 +1,16 @@
+[Unit]
+Description=GeoAI FTTH edge sensor agent
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=kobi
+WorkingDirectory=/home/kobi/geoai-sensor
+Environment=GEOAI_URL=https://geoai-ftth-demo.laopadit.com
+ExecStart=/usr/bin/python3 /home/kobi/geoai-sensor/pi_agent.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
