@@ -1,6 +1,6 @@
 FROM python:3.11-slim
 
-RUN apt-get update && apt-get install -y --no-install-recommends git \
+RUN apt-get update && apt-get install -y --no-install-recommends git unzip \
     && rm -rf /var/lib/apt/lists/*
 RUN pip install --no-cache-dir tornado redis maxminddb
 
@@ -8,6 +8,9 @@ WORKDIR /app
 
 # the actual GeoIP Attack Map project
 RUN git clone --depth 1 https://github.com/MatthewClarkMay/geoip-attack-map.git /app/repo
+
+# extract the country flags (shipped as a zip, referenced as /flags/XX.png)
+RUN unzip -o /app/repo/AttackMapServer/static/flags.zip -d /app/repo/AttackMapServer/static/
 
 # containerize DataServer (env-driven config, no root check)
 COPY patch_dataserver.py /app/
