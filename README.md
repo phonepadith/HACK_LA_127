@@ -81,6 +81,22 @@ GEOAI_URL=http://server:port ./deploy_pi.sh     # point sensor elsewhere
 
 Sensor config env vars: `GEOAI_URL`, `GEOAI_USER`, `GEOAI_PASS`, `PI_PORT`. Tip: turn OFF the dashboard's own "AI auto-approve recovery" toggle when demoing the Pi, so the recovery visibly comes from the device.
 
+## GeoIP world attack map (Logstash + geoip-attack-map)
+
+A global "see-overall" attack map ([attackmap/](attackmap/)) runs as a Docker stack on the CEIT server, separate from the dashboard: the real **[geoip-attack-map](https://github.com/MatthewClarkMay/geoip-attack-map)** project (DataServer + Norse-style world map) fed by real **Logstash**.
+
+Pipeline: `simulator (attack events, real source IPs) → TCP → Logstash → syslog line → DataServer (GeoIP + aggregate) → Redis → MapServer (:8899) → browser`.
+
+```bash
+./deploy_attackmap.sh          # build + start the 3-container stack on CEIT
+```
+
+- **No credentials needed**: Logstash replaces the project's MaxMind-dependent input, and GeoIP uses a license-free GeoLite2 mirror (`attackmap/db/`, git-ignored, ~62 MB).
+- The simulator ships each ONT takeover to Logstash only when `LOGSTASH_HOST` is set (deploy.sh sets it on CEIT); attacker source IPs are drawn from a real global pool so arcs originate from real countries.
+- Adaptations for modern infra live in `attackmap/patch_*.py` and `mapserver.py`: Python-3 MapServer (upstream's `tornadoredis` is dead), keyless dark tiles (upstream's Mapbox token expired), relative `wss://` for the tunnel.
+
+Expose it by pointing a Cloudflare tunnel hostname at `localhost:8899` on CEIT.
+
 ## API
 
 - `GET /api/state` — full state (ONTs, zones, alerts, events, active attack path, stats)

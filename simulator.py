@@ -23,8 +23,10 @@ Self-check: python3 simulator.py --check
 import csv
 import json
 import os
+import queue
 import random
 import secrets
+import socket
 import sys
 import threading
 import time
@@ -62,6 +64,28 @@ TAKEOVER_FAILS = 8    # fails before the simulated attacker gets in
 ALERT_MIN_AFFECTED = 3  # affected ONTs in a zone before a zone alert fires
 IP_WINDOW = 300       # seconds of attacker source-IP history to aggregate
 HISTORY_BACKFILL = 450  # synthetic past attacks seeded in demo mode
+
+# Ship attack events to a Logstash TCP input (for the GeoIP world attack map).
+# Off unless LOGSTASH_HOST is set (e.g. by deploy.sh on the CEIT server).
+LOGSTASH_HOST = os.environ.get("LOGSTASH_HOST")
+LOGSTASH_PORT = int(os.environ.get("LOGSTASH_PORT", "5055"))
+# Real, geolocatable public IPs across the world so the map draws real arcs.
+GLOBAL_ATTACKER_IPS = [
+    "8.8.8.8", "208.67.222.222", "156.154.70.1",   # United States
+    "77.88.8.8",                                    # Russia
+    "114.114.114.114", "223.5.5.5",                 # China
+    "168.126.63.1",                                 # South Korea
+    "84.200.69.80",                                 # Germany
+    "80.80.80.80",                                  # Netherlands
+    "91.239.100.100",                               # Denmark
+    "200.221.11.100",                               # Brazil
+    "165.21.83.88",                                 # Singapore
+    "196.14.187.10",                                # South Africa
+    "80.67.169.12",                                 # France
+    "203.112.2.4",                                  # Japan
+    "49.36.0.1",                                    # India
+    "1.1.1.1",                                      # Australia/anycast
+]
 
 
 def load_devices(path=Path(__file__).with_name("devices.csv")):
@@ -117,8 +141,31 @@ class Simulation:
         self.next_auto_attack = 15 + rng.uniform(0, 15)
         self.recovered_total = 0
         self.detected_attacks = 0
+        # background shipper: attack events -> Logstash -> GeoIP world map
+        self.ship_q = queue.Queue(maxsize=1000)
+        if LOGSTASH_HOST:
+            threading.Thread(target=self._shipper, daemon=True).start()
         if not live:
             self._backfill_history()
+
+    def ship_attack(self, src_ip, dst_port=22, type_attack="CredStuffing"):
+        if not LOGSTASH_HOST:
+            return
+        try:
+            self.ship_q.put_nowait({"src_ip": src_ip, "src_port": self.rng.randint(1024, 65535),
+                                    "dst_port": dst_port, "type_attack": type_attack,
+                                    "cve": "CVE:0:0"})
+        except queue.Full:
+            pass
+
+    def _shipper(self):
+        while True:
+            evt = self.ship_q.get()
+            try:
+                with socket.create_connection((LOGSTASH_HOST, LOGSTASH_PORT), timeout=3) as s:
+                    s.sendall((json.dumps(evt) + "\n").encode())
+            except OSError:
+                pass  # map is best-effort; never let it disturb detection
 
     def _backfill_history(self):
         """Seed a year of synthetic attack history so the statistics have data."""
@@ -161,6 +208,7 @@ class Simulation:
                     self.log("compromise",
                              f"{ont['id']}: credential change reported — service down",
                              ont["olt"])
+                    self.ship_attack(e.get("src_ip") or self.rng.choice(GLOBAL_ATTACKER_IPS))
                 n += 1
             self._detect()
         return n
@@ -176,7 +224,7 @@ class Simulation:
         pool = [o for o in self.onts.values() if o["olt"] == olt_id]
         targets = [o["id"] for o in
                    self.rng.sample(pool, self.rng.randint(min(8, len(pool)), min(20, len(pool))))]
-        ips = [f"203.0.113.{self.rng.randint(1, 254)}" for _ in range(self.rng.randint(1, 3))]
+        ips = self.rng.sample(GLOBAL_ATTACKER_IPS, self.rng.randint(1, 3))
         self.attack = {"olt": olt_id, "origin": origin["id"], "targets": targets, "ips": ips}
         self.log("attack", f"[hidden] attacker in {origin['name']} begins "
                            f"credential-stuffing sweep against {self.names[olt_id]}", olt_id)
@@ -213,6 +261,7 @@ class Simulation:
                                 self.log("compromise",
                                          f"{tid}: credentials changed by attacker — service down",
                                          ont["olt"])
+                                self.ship_attack(self.rng.choice(self.attack["ips"]))
             self._detect()
 
     # --- AI detection + GeoAI zone scoring -------------------------------------

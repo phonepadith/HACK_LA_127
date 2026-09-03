@@ -16,7 +16,7 @@ tar cz simulator.py dashboard.html README.md | ssh -p $PORT $HOST "
   fuser -k $APP_PORT/tcp 2>/dev/null || true
   sleep 1
   cd $DIR
-  nohup python3 simulator.py --port $APP_PORT > geoai.log 2>&1 < /dev/null &
+  LOGSTASH_HOST=127.0.0.1 LOGSTASH_PORT=5055 setsid nohup python3 simulator.py --port $APP_PORT > geoai.log 2>&1 < /dev/null &
   sleep 2
   if curl -sf localhost:$APP_PORT/ > /dev/null 2>&1 \
      || python3 -c 'import urllib.request as u; u.urlopen(\"http://localhost:$APP_PORT/\")' 2>/dev/null; then

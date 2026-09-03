@@ -1,0 +1,28 @@
+FROM python:3.11-slim
+
+RUN apt-get update && apt-get install -y --no-install-recommends git \
+    && rm -rf /var/lib/apt/lists/*
+RUN pip install --no-cache-dir tornado redis maxminddb
+
+WORKDIR /app
+
+# the actual GeoIP Attack Map project
+RUN git clone --depth 1 https://github.com/MatthewClarkMay/geoip-attack-map.git /app/repo
+
+# containerize DataServer (env-driven config, no root check)
+COPY patch_dataserver.py /app/
+RUN python /app/patch_dataserver.py /app/repo/DataServer/DataServer.py
+
+# patch the frontend: keyless dark tiles, Laos HQ marker, relative websocket,
+# https CDNs (upstream ships a dead Mapbox token + http:// includes)
+COPY patch_frontend.py /app/
+RUN python /app/patch_frontend.py /app/repo/AttackMapServer
+
+# license-free GeoIP City database, placed where DataServer expects it
+COPY db/GeoLite2-City.mmdb /app/repo/DataServerDB/GeoLite2-City.mmdb
+
+COPY mapserver.py entrypoint.sh /app/
+RUN chmod +x /app/entrypoint.sh
+
+EXPOSE 8888
+CMD ["/app/entrypoint.sh"]

@@ -1,0 +1,37 @@
+# GeoIP Attack Map + Logstash stack for the GeoAI FTTH platform.
+# Pipeline:  GeoAI simulator --TCP/json--> Logstash --syslog line--> shared file
+#            --> DataServer (GeoIP + aggregate) --Redis pub/sub--> MapServer (:8888) --> browser
+name: geoai-attackmap
+
+services:
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.15.0
+    restart: unless-stopped
+    environment:
+      LS_JAVA_OPTS: "-Xms512m -Xmx512m"   # cap heap so it fits alongside other stacks
+    volumes:
+      - ./logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml:ro
+      - ./logstash/pipeline:/usr/share/logstash/pipeline:ro
+      - ./shared:/shared
+    ports:
+      - "127.0.0.1:5055:5055"   # simulator ships attack events here (localhost only)
+
+  attackmap:
+    build:
+      context: .
+      dockerfile: Dockerfile.map
+    restart: unless-stopped
+    depends_on: [redis]
+    environment:
+      REDIS_HOST: redis
+      SYSLOG_PATH: /shared/attack.log
+      DB_PATH: /app/repo/DataServerDB/GeoLite2-City.mmdb
+      HQ_IP: "202.137.130.115"   # geolocates to Laos -> attack arcs terminate here
+    volumes:
+      - ./shared:/shared
+    ports:
+      - "8899:8888"   # world map UI (tunnel a subdomain here)
