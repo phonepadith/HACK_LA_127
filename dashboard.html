@@ -166,6 +166,13 @@
   #view-docs td { padding:7px 10px; border-bottom:1px solid var(--border); vertical-align:top; }
   #view-docs td:first-child { font-family:var(--mono); font-size:11px; color:var(--accent);
                               white-space:nowrap; }
+  #view-docs a { color:var(--accent); text-decoration:none; }
+  #view-docs a:hover { text-decoration:underline; }
+  .links { display:flex; flex-wrap:wrap; gap:10px; }
+  .linkcard { flex:1; min-width:220px; background:var(--panel2); border:1px solid var(--border);
+              border-left:3px solid var(--accent); border-radius:8px; padding:10px 12px; }
+  .linkcard b { font-size:12px; } .linkcard .u { font:11px var(--mono); }
+  .linkcard div { color:var(--dim); font-size:11px; margin-top:2px; }
   .flow { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin:6px 0; }
   .fbox { background:var(--panel2); border:1px solid var(--border); border-radius:8px;
           padding:8px 12px; font-size:12px; text-align:center; }
@@ -324,6 +331,27 @@
     </div>
 
     <div class="card">
+      <h3>Live access points</h3>
+      <div class="links">
+        <div class="linkcard">
+          <b>SOC Dashboard</b>
+          <div><a href="https://geoai-ftth-demo.laopadit.com/" target="_blank">geoai-ftth-demo.laopadit.com</a></div>
+          <div>this page · login admin / geoai2026</div>
+        </div>
+        <div class="linkcard">
+          <b>GeoIP World Attack Map</b>
+          <div><a href="https://attackmap.laopadit.com/" target="_blank">attackmap.laopadit.com</a></div>
+          <div>global source → Laos, live</div>
+        </div>
+        <div class="linkcard">
+          <b>Edge Sensor (Raspberry Pi)</b>
+          <div><a href="https://geoai-node-01.laopadit.com/" target="_blank">geoai-node-01.laopadit.com</a></div>
+          <div>device monitor · CPU / RAM / temp</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
       <h3>1 · What this platform does</h3>
       <p>Broadband ISPs face attacks where intruders take over FTTH ONT/router accounts and
       change customer credentials, cutting service. Recovering customers one by one is slow and
@@ -331,7 +359,8 @@
       them <b>geographically</b> across all 18 Laos provinces (GeoAI), raises prioritized
       hotspot alerts, and performs <b>batch recovery via the ACS</b> — approved by an operator
       with one click, automatically by the AI, or by a field <b>edge sensor</b>
-      (Raspberry Pi).</p>
+      (Raspberry Pi). Attacks are also streamed to a <b>global GeoIP attack map</b> that plots
+      each source's real-world origin as it strikes the Laos network.</p>
     </div>
 
     <div class="card">
@@ -355,9 +384,19 @@
         <div class="fbox ai">GeoAI server API<small>polls state every 3 s ·
           triggers recovery · actions attributed on the live feed</small></div>
       </div>
-      <p>Everything is dependency-free: the server and the sensor are single Python-stdlib
-      files; the dashboard uses Leaflet + ApexCharts from CDN with Google street tiles
-      (keyless).</p>
+      <div class="flow">
+        <div class="fbox ai">GeoAI server<small>ships each takeover · real global src IP</small></div>
+        <span class="farrow">→</span>
+        <div class="fbox">Logstash<small>GeoIP enrich · TCP :5055 (Docker)</small></div>
+        <span class="farrow">→</span>
+        <div class="fbox src">geoip-attack-map<small>DataServer + Redis · aggregate</small></div>
+        <span class="farrow">→</span>
+        <div class="fbox">World attack map<small>attackmap.laopadit.com</small></div>
+      </div>
+      <p>The core server and the sensor are single Python-stdlib files; the dashboard uses
+      Leaflet + ApexCharts from CDN with keyless dark tiles. The world attack map runs as a
+      separate <b>Docker stack</b> (Logstash + Redis + the geoip-attack-map project) on the
+      CEIT server.</p>
     </div>
 
     <div class="card">
@@ -408,7 +447,29 @@
     </div>
 
     <div class="card">
-      <h3>5 · API reference</h3>
+      <h3>5 · GeoIP world attack map</h3>
+      <div class="flow">
+        <div class="fbox src">Takeover event<small>real global source IP</small></div>
+        <span class="farrow">→</span>
+        <div class="fbox">Logstash<small>TCP :5055 · GeoIP · writes syslog line</small></div>
+        <span class="farrow">→</span>
+        <div class="fbox ai">DataServer<small>GeoIP City DB · aggregate · publish</small></div>
+        <span class="farrow">→</span>
+        <div class="fbox">Redis<small>pub/sub bus</small></div>
+        <span class="farrow">→</span>
+        <div class="fbox ok">MapServer<small>websocket · Norse-style world map</small></div>
+      </div>
+      <p>A separate view of the same attacks, answering "where in the world is this coming
+      from". Every ONT takeover on the dashboard is shipped to the map at
+      <a href="https://attackmap.laopadit.com/" target="_blank">attackmap.laopadit.com</a>,
+      which draws an animated arc from the attacker's real country to Laos, with a live event
+      table (IP · country flag · service) and per-country / per-IP counters. It is the actual
+      open-source <b>geoip-attack-map</b> project fed by real <b>Logstash</b>, deployed as a
+      three-container Docker stack (<b>./deploy_attackmap.sh</b>).</p>
+    </div>
+
+    <div class="card">
+      <h3>6 · API reference</h3>
       <table>
         <tr><th>Endpoint</th><th>Purpose</th></tr>
         <tr><td>POST /api/login</td><td>{"user","pass"} → session token; all other endpoints
@@ -429,7 +490,7 @@
     </div>
 
     <div class="card">
-      <h3>6 · Configuration &amp; deployment</h3>
+      <h3>7 · Configuration &amp; deployment</h3>
       <table>
         <tr><th>Item</th><th>Value</th></tr>
         <tr><td>Modes</td><td>python3 simulator.py (demo, self-driving attacks) ·
@@ -445,6 +506,9 @@
         <tr><td>Edge sensor</td><td>Raspberry Pi 3 · /home/kobi/geoai-sensor ·
           ./deploy_pi.sh · GEOAI_URL / SENSOR_LAT / SENSOR_LON env vars ·
           cloudflared → geoai-node-01.laopadit.com</td></tr>
+        <tr><td>Attack map</td><td>Docker stack (Logstash + Redis + geoip-attack-map) on CEIT
+          :8899 · ./deploy_attackmap.sh · cloudflared → attackmap.laopadit.com ·
+          sim ships events when LOGSTASH_HOST is set</td></tr>
         <tr><td>Source</td><td>github.com/phonepadith/geoai-security ·
           self-checks: simulator.py --check · pi_agent.py --check</td></tr>
       </table>
