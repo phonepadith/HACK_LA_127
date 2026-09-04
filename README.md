@@ -97,6 +97,10 @@ Pipeline: `simulator (attack events, real source IPs) → TCP → Logstash → s
 
 Expose it by pointing a Cloudflare tunnel hostname at `localhost:8899` on CEIT.
 
+### Elasticsearch + Kibana (T-Pot-style analytics)
+
+The same stack also runs **Elasticsearch + Kibana**: Logstash indexes every geoip-enriched attack into `geoai-attacks-*`, and `attackmap/setup_kibana.py` provisions the index template, data view, and a **GeoAI — Attack Analytics** dashboard (TSVB panels: total/unique/countries counters, attacks-over-time histogram, top attacker countries / services / reputation / source IPs / destination ports). `deploy_attackmap.sh` runs the provisioning automatically. Kibana is on `localhost:5601` — tunnel a subdomain to reach it. ES runs single-node with security disabled (internal-only, behind the tunnel).
+
 ## API
 
 - `GET /api/state` — full state (ONTs, zones, alerts, events, active attack path, stats)

@@ -22,6 +22,9 @@ ssh -p $PORT $HOST "
     curl -sf localhost:8899/ >/dev/null 2>&1 && { echo 'MAP UP'; break; }
     sleep 2
   done
+  echo 'provisioning Elasticsearch + Kibana (waits for them to boot)...'
+  python3 setup_kibana.py
   docker compose ps
 "
-echo "Attack map: tunnel a subdomain to localhost:8899 on CEIT"
+echo "Attack map:  tunnel a subdomain to localhost:8899 on CEIT"
+echo "Kibana:      tunnel a subdomain to localhost:5601 on CEIT"

@@ -86,6 +86,14 @@ GLOBAL_ATTACKER_IPS = [
     "49.36.0.1",                                    # India
     "1.1.1.1",                                      # Australia/anycast
 ]
+# service / port / attack-type mix, so the Kibana dashboard has dimensions
+ATTACK_SERVICES = [
+    ("SSH", 22, "Brute force"),   ("TELNET", 23, "Brute force"),
+    ("HTTP", 80, "Web exploit"),  ("HTTPS", 443, "Web exploit"),
+    ("FTP", 21, "Cred stuffing"), ("SMB", 445, "Exploit"),
+    ("RDP", 3389, "Brute force"), ("SQL", 3306, "SQL injection"),
+    ("DNS", 53, "Amplification"),
+]
 
 
 def load_devices(path=Path(__file__).with_name("devices.csv")):
@@ -148,13 +156,18 @@ class Simulation:
         if not live:
             self._backfill_history()
 
-    def ship_attack(self, src_ip, dst_port=22, type_attack="CredStuffing"):
+    def ship_attack(self, src_ip):
         if not LOGSTASH_HOST:
             return
+        svc, port, atk = self.rng.choice(ATTACK_SERVICES)
+        rep = self.rng.choices(["known attacker", "mass scanner", "unknown"],
+                               weights=[6, 3, 1])[0]
         try:
-            self.ship_q.put_nowait({"src_ip": src_ip, "src_port": self.rng.randint(1024, 65535),
-                                    "dst_port": dst_port, "type_attack": type_attack,
-                                    "cve": "CVE:0:0"})
+            self.ship_q.put_nowait({
+                "src_ip": src_ip, "src_port": self.rng.randint(1024, 65535),
+                "dst_port": port, "service": svc, "type_attack": atk,
+                "reputation": rep, "cve": f"CVE:{self.rng.randint(2018, 2025)}:"
+                                          f"{self.rng.randint(1000, 9999)}"})
         except queue.Full:
             pass
 
