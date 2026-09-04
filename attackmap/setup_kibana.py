@@ -46,6 +46,18 @@ print("[*] index template installed")
 # --- 2. Kibana data view -----------------------------------------------------
 wait(f"{KB}/api/status", "Kibana")
 XSRF = {"kbn-xsrf": "true"}
+
+# force the dark ("black") theme globally (value is an enum in 8.14+, was bool)
+for val in ("enabled", True):
+    try:
+        req(f"{KB}/api/kibana/settings", method="POST", headers=XSRF,
+            data={"changes": {"theme:darkMode": val}})
+        print(f"[*] dark theme enabled (theme:darkMode={val})")
+        break
+    except urllib.error.HTTPError as e:
+        if e.code != 400:
+            print(f"[!] dark theme: {e.code}")
+            break
 try:
     req(f"{KB}/api/data_views/data_view", method="POST", headers=XSRF, data={
         "data_view": {"id": DV_ID, "title": "geoai-attacks-*", "timeFieldName": "@timestamp"}})
