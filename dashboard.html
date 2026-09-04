@@ -54,6 +54,13 @@
   .sidebar button.tab:hover { color:var(--text); background:rgba(255,255,255,.03); }
   .sidebar button.tab.active { color:var(--text); border-left-color:var(--accent);
         background:rgba(34,211,238,.08); }
+  .sidebar a.navext { display:flex; align-items:center; gap:10px; color:var(--dim);
+        font-size:13px; padding:11px 16px; text-decoration:none; border-left:2px solid transparent; }
+  .sidebar a.navext:hover { color:var(--accent); background:rgba(255,255,255,.03); }
+  .sidebar a.navext .arrow { margin-left:auto; opacity:.6; font-size:11px; }
+  .sidebar .exthead { padding:14px 16px 4px; font:600 9px var(--mono); letter-spacing:.12em;
+        color:var(--dim); text-transform:uppercase; border-top:1px solid var(--border);
+        margin-top:6px; }
   .sidebar .foot { margin-top:auto; padding:14px 16px; border-top:1px solid var(--border);
                    font-size:11px; color:var(--dim); display:flex; flex-direction:column; gap:6px; }
   #mode { font-weight:700; }
@@ -191,6 +198,9 @@
     .sidebar button.tab { width:auto; border-left:0; border-bottom:2px solid transparent;
                           padding:12px 10px; white-space:nowrap; }
     .sidebar button.tab.active { border-left:0; border-bottom-color:var(--accent); }
+    .sidebar .exthead { display:none; }
+    .sidebar a.navext { border-left:0; padding:12px 10px; white-space:nowrap; }
+    .sidebar a.navext .arrow { margin-left:4px; }
     .sidebar .foot { margin:0 0 0 auto; border:0; flex-direction:row; align-items:center;
                      gap:8px; padding:8px; }
     .sidebar .env, .sidebar #who, .sidebar #clock { display:none; }
@@ -234,6 +244,11 @@
   <button class="tab" data-view="analytics">📊 Analytics</button>
   <button class="tab" data-view="events">📋 Events</button>
   <button class="tab" data-view="docs">📖 Docs</button>
+  <div class="exthead">External consoles</div>
+  <a class="navext" href="https://kibana-dashboard.laopadit.com/" target="_blank" rel="noopener">
+    📊 Kibana Analytics<span class="arrow">↗</span></a>
+  <a class="navext" href="https://attackmap.laopadit.com/" target="_blank" rel="noopener">
+    🌐 World Attack Map<span class="arrow">↗</span></a>
   <div class="foot">
     <span id="mode">…</span>
     <span class="env">Laos · 18 provinces</span>
@@ -344,6 +359,11 @@
           <div>global source → Laos, live</div>
         </div>
         <div class="linkcard">
+          <b>Kibana Analytics (Elastic)</b>
+          <div><a href="https://kibana-dashboard.laopadit.com/" target="_blank">kibana-dashboard.laopadit.com</a></div>
+          <div>T-Pot-style dashboard · dark theme</div>
+        </div>
+        <div class="linkcard">
           <b>Edge Sensor (Raspberry Pi)</b>
           <div><a href="https://geoai-node-01.laopadit.com/" target="_blank">geoai-node-01.laopadit.com</a></div>
           <div>device monitor · CPU / RAM / temp</div>
@@ -393,10 +413,18 @@
         <span class="farrow">→</span>
         <div class="fbox">World attack map<small>attackmap.laopadit.com</small></div>
       </div>
+      <div class="flow">
+        <div class="fbox">Logstash<small>same pipeline</small></div>
+        <span class="farrow">→</span>
+        <div class="fbox ai">Elasticsearch<small>geoai-attacks-* · geo_point index</small></div>
+        <span class="farrow">→</span>
+        <div class="fbox ok">Kibana<small>T-Pot-style dashboard · kibana-dashboard.laopadit.com</small></div>
+      </div>
       <p>The core server and the sensor are single Python-stdlib files; the dashboard uses
-      Leaflet + ApexCharts from CDN with keyless dark tiles. The world attack map runs as a
-      separate <b>Docker stack</b> (Logstash + Redis + the geoip-attack-map project) on the
-      CEIT server.</p>
+      Leaflet + ApexCharts from CDN with keyless dark tiles. The observability stack runs as a
+      separate <b>Docker stack</b> on the CEIT server: Logstash + Redis + the geoip-attack-map
+      project (world map), plus Elasticsearch + Kibana (analytics). One Logstash pipeline feeds
+      both.</p>
     </div>
 
     <div class="card">
@@ -469,7 +497,27 @@
     </div>
 
     <div class="card">
-      <h3>6 · API reference</h3>
+      <h3>6 · Elastic analytics (Kibana)</h3>
+      <div class="flow">
+        <div class="fbox src">Takeover event<small>src IP · service · port · reputation</small></div>
+        <span class="farrow">→</span>
+        <div class="fbox">Logstash<small>GeoIP enrich · index</small></div>
+        <span class="farrow">→</span>
+        <div class="fbox ai">Elasticsearch<small>geoai-attacks-* · geo_point</small></div>
+        <span class="farrow">→</span>
+        <div class="fbox ok">Kibana dashboard<small>counters · charts · map</small></div>
+      </div>
+      <p>A T-Pot-style attack dashboard at
+      <a href="https://kibana-dashboard.laopadit.com/" target="_blank">kibana-dashboard.laopadit.com</a>
+      (dark theme): KPI counters (total / unique IPs / countries), an attacks-over-time
+      histogram, a GeoIP bubble map of attack sources, and top attacker countries / services /
+      reputation / source-IPs / destination-ports. It is real <b>Elasticsearch + Kibana</b>,
+      fed by the same Logstash pipeline; dashboards are provisioned by
+      <b>setup_kibana.py</b> (data view + saved objects via the Kibana API).</p>
+    </div>
+
+    <div class="card">
+      <h3>7 · API reference</h3>
       <table>
         <tr><th>Endpoint</th><th>Purpose</th></tr>
         <tr><td>POST /api/login</td><td>{"user","pass"} → session token; all other endpoints
@@ -490,7 +538,7 @@
     </div>
 
     <div class="card">
-      <h3>7 · Configuration &amp; deployment</h3>
+      <h3>8 · Configuration &amp; deployment</h3>
       <table>
         <tr><th>Item</th><th>Value</th></tr>
         <tr><td>Modes</td><td>python3 simulator.py (demo, self-driving attacks) ·
@@ -509,6 +557,9 @@
         <tr><td>Attack map</td><td>Docker stack (Logstash + Redis + geoip-attack-map) on CEIT
           :8899 · ./deploy_attackmap.sh · cloudflared → attackmap.laopadit.com ·
           sim ships events when LOGSTASH_HOST is set</td></tr>
+        <tr><td>Kibana / Elastic</td><td>Same Docker stack: Elasticsearch + Kibana :5601 ·
+          index geoai-attacks-* · setup_kibana.py provisions dashboard + dark theme ·
+          cloudflared → kibana-dashboard.laopadit.com</td></tr>
         <tr><td>Source</td><td>github.com/phonepadith/geoai-security ·
           self-checks: simulator.py --check · pi_agent.py --check</td></tr>
       </table>
