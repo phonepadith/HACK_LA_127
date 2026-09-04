@@ -99,10 +99,53 @@ def timeseries(oid, title):
          "metrics": [{"id": "m2", "type": "cardinality", "field": "src_ip.keyword"}]}]})
 
 
+def geomap(oid, title):
+    """Kibana Maps bubble map: attack sources over geoip.location, sized by count."""
+    layers = [
+        # keyless OSM raster base (the Elastic Maps Service is unreachable here)
+        {"id": "basemap", "label": "OpenStreetMap", "minZoom": 0, "maxZoom": 19, "alpha": 1,
+         "sourceDescriptor": {"type": "EMS_XYZ", "id": "osm",
+                              "urlTemplate": "https://tile.openstreetmap.org/{z}/{x}/{y}.png"},
+         "visible": True, "style": {"type": "RASTER"}, "type": "RASTER_TILE"},
+        {"id": "clusters", "label": "Attack sources", "minZoom": 0, "maxZoom": 24,
+         "alpha": 0.85, "visible": True, "type": "GEOJSON_VECTOR", "joins": [],
+         "sourceDescriptor": {
+             "type": "ES_GEO_GRID", "resolution": "COARSE", "id": "grid1",
+             "geoField": "geoip.location", "requestType": "point",
+             "metrics": [{"type": "count", "label": "Attacks"}],
+             "indexPatternRefName": "layer_1_source_index_pattern",
+             "applyGlobalQuery": True, "applyGlobalTime": True},
+         "style": {"type": "VECTOR", "isTimeAware": True, "properties": {
+             "icon": {"type": "STATIC", "options": {"value": "marker"}},
+             "fillColor": {"type": "STATIC", "options": {"color": "#FB5B6E"}},
+             "lineColor": {"type": "STATIC", "options": {"color": "#FFFFFF"}},
+             "lineWidth": {"type": "STATIC", "options": {"size": 1}},
+             "iconSize": {"type": "DYNAMIC", "options": {
+                 "minSize": 6, "maxSize": 40,
+                 "field": {"name": "doc_count", "origin": "source"},
+                 "fieldMetaOptions": {"isEnabled": True, "sigma": 3}}},
+             "labelText": {"type": "DYNAMIC", "options": {
+                 "field": {"name": "doc_count", "origin": "source"}}},
+             "labelColor": {"type": "STATIC", "options": {"color": "#FFFFFF"}},
+             "labelSize": {"type": "STATIC", "options": {"size": 12}},
+             "labelBorderColor": {"type": "STATIC", "options": {"color": "#000000"}},
+             "labelBorderSize": {"options": {"size": "SMALL"}}}}}]
+    state = {"zoom": 1.7, "center": {"lon": 40, "lat": 20},
+             "timeFilters": {"from": "now-24h", "to": "now"},
+             "query": {"query": "", "language": "kuery"}, "filters": []}
+    return {"id": oid, "type": "map", "attributes": {
+        "title": title, "description": "Attack sources (GeoIP)",
+        "mapStateJSON": json.dumps(state), "layerListJSON": json.dumps(layers),
+        "uiStateJSON": "{}"},
+        "references": [{"name": "layer_1_source_index_pattern",
+                        "type": "index-pattern", "id": DV_ID}]}
+
+
 objs = [
     {"id": DV_ID, "type": "index-pattern",
      "attributes": {"title": "geoai-attacks-*", "timeFieldName": "@timestamp"},
      "references": []},
+    geomap("g-map", "Attack Source Map"),
     metric("g-total", "Total Attacks", "count"),
     metric("g-ips", "Unique Source IPs", "cardinality", "src_ip.keyword", "#FFA857"),
     metric("g-countries", "Source Countries", "cardinality",
@@ -115,20 +158,26 @@ objs = [
     topn("g-port", "Top Destination Ports", "dst_port", "#34D399"),
 ]
 
-# dashboard layout (48-col grid)
+# dashboard layout (48-col grid): (id, so_type, x, y, w, h)
 layout = [
-    ("g-total", 0, 0, 16, 6), ("g-ips", 16, 0, 16, 6), ("g-countries", 32, 0, 16, 6),
-    ("g-time", 0, 6, 48, 11),
-    ("g-country", 0, 17, 16, 13), ("g-service", 16, 17, 16, 13), ("g-rep", 32, 17, 16, 13),
-    ("g-srcip", 0, 30, 24, 13), ("g-port", 24, 30, 24, 13),
+    ("g-total", "visualization", 0, 0, 16, 6),
+    ("g-ips", "visualization", 16, 0, 16, 6),
+    ("g-countries", "visualization", 32, 0, 16, 6),
+    ("g-map", "map", 0, 6, 48, 16),
+    ("g-time", "visualization", 0, 22, 48, 11),
+    ("g-country", "visualization", 0, 33, 16, 13),
+    ("g-service", "visualization", 16, 33, 16, 13),
+    ("g-rep", "visualization", 32, 33, 16, 13),
+    ("g-srcip", "visualization", 0, 46, 24, 13),
+    ("g-port", "visualization", 24, 46, 24, 13),
 ]
 panels, refs = [], []
-for n, (vid, x, y, w, h) in enumerate(layout, 1):
+for n, (vid, sotype, x, y, w, h) in enumerate(layout, 1):
     pi = str(n)
-    panels.append({"version": "8.15.0", "type": "visualization",
+    panels.append({"version": "8.15.0", "type": sotype,
                    "gridData": {"x": x, "y": y, "w": w, "h": h, "i": pi},
                    "panelIndex": pi, "embeddableConfig": {}, "panelRefName": f"panel_{pi}"})
-    refs.append({"name": f"panel_{pi}", "type": "visualization", "id": vid})
+    refs.append({"name": f"panel_{pi}", "type": sotype, "id": vid})
 
 objs.append({"id": "geoai-attack-dashboard", "type": "dashboard", "attributes": {
     "title": "GeoAI — Attack Analytics (Elastic)",
