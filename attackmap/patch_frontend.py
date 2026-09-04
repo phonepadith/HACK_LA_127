@@ -28,6 +28,10 @@ js = re.sub(
 # HQ marker -> Laos (matches the arc destinations set by DataServer HQ_IP)
 js = js.replace("new L.LatLng(37.3845, -122.0881)", "new L.LatLng(17.9641, 102.5987)")
 
+# cache-bust the flag URLs so browsers that cached the pre-fix 404s re-fetch
+# (all four `.png` occurrences are flag paths)
+js = js.replace("+ '.png'", "+ '.png?v=2'")
+
 # websocket -> same host/scheme the page was served from
 js = js.replace('new WebSocket("ws:/127.0.0.1:8888/websocket")',
                 'new WebSocket((location.protocol==="https:"?"wss://":"ws://")'
