@@ -12,6 +12,9 @@ Working simulation of the platform described in *GeoAI FTTH Security Intelligenc
 ![Kibana](docs/screenshots/05-kibana.png)
 *Kibana — GeoAI Attack Analytics dashboard (attack source map, counters, histogram)*
 
+![World attack map](docs/screenshots/06-world-attack-map.png)
+*GeoIP world attack map — Norse-style live arcs, per-service/country/IP counters, exploit feed*
+
 ## Run
 
 ```bash
