@@ -9,6 +9,10 @@ DIR=/home/administrator/fen-site/geoai
 APP_PORT=3030
 
 cd "$(dirname "$0")"
+
+# Local secrets, git-ignored — SEALION_API_KEY=sk-... for the AI analyst panel.
+[ -f .env ] && . ./.env
+[ -n "${SEALION_API_KEY:-}" ] || echo "warning: SEALION_API_KEY unset — AI analyst will 502"
 tar cz simulator.py dashboard.html README.md | ssh -p $PORT $HOST "
   set -e
   mkdir -p $DIR
@@ -16,6 +20,7 @@ tar cz simulator.py dashboard.html README.md | ssh -p $PORT $HOST "
   fuser -k $APP_PORT/tcp 2>/dev/null || true
   sleep 1
   cd $DIR
+  SEALION_API_KEY='$SEALION_API_KEY' \\
   LOGSTASH_HOST=127.0.0.1 LOGSTASH_PORT=5055 setsid nohup python3 simulator.py --port $APP_PORT > geoai.log 2>&1 < /dev/null &
   sleep 2
   if curl -sf localhost:$APP_PORT/ > /dev/null 2>&1 \

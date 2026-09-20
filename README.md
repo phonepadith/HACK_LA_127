@@ -8,6 +8,72 @@ Working simulation of the platform described in *GeoAI FTTH Security Intelligenc
 
 Editable source: [docs/architecture.drawio](docs/architecture.drawio) (open at [app.diagrams.net](https://app.diagrams.net)) — generated from [docs/architecture.ir.json](docs/architecture.ir.json).
 
+## Software stack
+
+Two deliberate constraints shape the implementation: the SOC core runs on **Python 3 standard
+library only** — no pip install, no venv, no build step, so it starts on any box that has
+`python3` — and everything heavier (GeoIP enrichment, search, analytics) is pushed into a
+separate Docker stack that can be switched off without touching detection.
+
+**SOC core** — `simulator.py`, CEIT server, port 3030 (8000 default)
+
+| | |
+|---|---|
+| Runtime | Python 3, stdlib only: `http.server.ThreadingHTTPServer`, `json`, `csv`, `secrets`, `threading`, `urllib.request` |
+| State | In-process memory — ONT inventory, zone risk, alerts, 60-event ring buffer, attack history |
+| Auth | Single shared login, `secrets.token_hex` session tokens, `X-Auth` header on every `/api/*` |
+| Detection | ≥5 failed logins / 60 s → suspicious; credential change → compromised (constants at the top of the file) |
+| Recovery | ACS batch reset per zone — stubbed; wire a vendor TR-069/NETCONF call in `_do_recover()` |
+
+**Dashboard** — `dashboard.html`, one file, no bundler
+
+| | |
+|---|---|
+| UI | Vanilla JS + CSS custom properties, no framework |
+| Map | [Leaflet](https://leafletjs.com) 1.9.4 (unpkg) |
+| Charts | [ApexCharts](https://apexcharts.com) (jsDelivr) |
+| Type | IBM Plex Sans / Mono (Google Fonts) |
+| Data | Polls `GET /api/state` every 3 s; `GET /api/stats?range=` for the analytics view |
+
+**AI analyst** — see [AI analyst (SEA-LION)](#ai-analyst-sea-lion)
+
+| | |
+|---|---|
+| Model | `aisingapore/Gemma-SEA-LION-v4-27B-IT` (configurable) |
+| Transport | OpenAI-compatible REST over `urllib.request` — no SDK |
+| Boundary | Key server-side only; the browser calls `POST /api/analyze` behind the session token |
+
+**Edge sensor** — `pi_agent.py`, Raspberry Pi
+
+| | |
+|---|---|
+| Runtime | Python 3 stdlib; own monitor UI on port 8080 |
+| Service | systemd unit [`geoai-sensor.service`](geoai-sensor.service), `Restart=always` |
+| Behaviour | Polls the GeoAI API every 3 s, detects compromised ONTs, performs its own batch recovery, heartbeats to `POST /api/sensor` |
+
+**Attack-map + analytics stack** — `attackmap/`, Docker Compose, five containers
+
+| Container | Image | Role |
+|---|---|---|
+| `logstash` | `logstash:8.15.0` | TCP :5055 `json_lines` in → `geoip` filter → CSV syslog line + Elasticsearch out |
+| `elasticsearch` | `elasticsearch:8.15.0` | Single-node, security disabled, `geoai-attacks-*` indices, bound to 127.0.0.1 |
+| `kibana` | `kibana:8.15.0` | Port 5601; index template, data view and TSVB dashboard provisioned by `setup_kibana.py` |
+| `redis` | `redis:7-alpine` | Pub/sub between DataServer and MapServer |
+| `attackmap` | `python:3.11-slim` + tornado, redis, maxminddb | Upstream [geoip-attack-map](https://github.com/MatthewClarkMay/geoip-attack-map) cloned at build; `mapserver.py` replaces its dead `tornadoredis` server; port 8899 |
+
+GeoIP data is MaxMind **GeoLite2-City** from a license-free mirror (`attackmap/db/`, git-ignored,
+~62 MB) — no MaxMind account needed. Frontend patches for modern infra live in
+`attackmap/patch_*.py`.
+
+**Exposure and deployment**
+
+| | |
+|---|---|
+| Ingress | Cloudflare tunnel → `geoai-ftth-demo`, `attackmap`, `kibana-dashboard` `.laopadit.com` |
+| Deploy | `deploy.sh` (tar over SSH, restart), `deploy_attackmap.sh` (compose build + Kibana provisioning), `deploy_pi.sh` — no CI |
+| Secrets | Environment variables; `.env` is git-ignored and forwarded by `deploy.sh` |
+| Tests | `python3 simulator.py --check` — attack → detect → alert → recover, stats, live ingestion, auth gate, AI brief |
+
 ## Screenshots
 
 | | |
@@ -89,6 +155,37 @@ Three views in the sidebar menu:
 - **Analytics** — attack statistics with 24-hour / 30-day / 12-month range toggle: attacks-over-time chart, most-attacked provinces, attack-origin provinces. Demo mode seeds a year of synthetic history; live mode only accumulates real detections.
 - **Events** — full event feed and attacker source list.
 
+## AI analyst (SEA-LION)
+
+The Overview sidebar has a **🧠 AI analyst** panel backed by [SEA-LION](https://sea-lion.ai)
+(AI Singapore's SEA-focused LLM). It writes a short shift report on the live case, or answers
+a typed question about it — which zone to recover first, whether an attack is still running,
+which source IP dominates.
+
+The server builds a compact brief of the current state (stats, zone alerts ranked worst-first,
+attacker IPs, edge sensors, last 15 events) and sends only that. The browser never sees the API
+key; every call goes through `POST /api/analyze`, behind the same session token as the rest of
+`/api/*`.
+
+```bash
+export SEALION_API_KEY=sk-...          # or put it in .env (git-ignored)
+python3 simulator.py
+```
+
+| Variable | Default | |
+|---|---|---|
+| `SEALION_API_KEY` | *(unset)* | Required — without it `/api/analyze` returns 502 and the panel says so |
+| `SEALION_MODEL` | `aisingapore/Gemma-SEA-LION-v4-27B-IT` | Any chat model from `GET https://api.sea-lion.ai/v1/models` |
+| `SEALION_URL` | `https://api.sea-lion.ai/v1/chat/completions` | OpenAI-compatible endpoint |
+
+`deploy.sh` reads `.env` and forwards the key to the server. Stdlib only — the call uses
+`urllib.request`, no SDK.
+
+The prompt pins the model to the supplied state ("never invent devices, IPs or numbers";
+recommendations limited to ACS batch reset, threshold tuning, or blocking a source IP), and
+the state is labelled as data rather than instructions. It is decision support, not an
+autonomous actor — it cannot trigger recovery; only the operator or the auto-approve toggle can.
+
 ## Raspberry Pi edge sensor
 
 [pi_agent.py](pi_agent.py) turns a Raspberry Pi into an edge monitor/sensor for the ONT server: it logs into the GeoAI API, polls the network state, detects hacked ONTs, performs the batch recovery itself, and every recovery it makes appears in the main GeoAI dashboard's live feed attributed to the sensor (`pi-sensor@<hostname>`). It serves its own monitor UI on port 8080 — server map, connection status, hack-simulation button, auto-recover toggle, and an action log.
@@ -128,3 +225,4 @@ The same stack also runs **Elasticsearch + Kibana**: Logstash indexes every geoi
 - `POST /api/auto` — `{"enabled": true|false}` toggle AI auto-approved recovery (also a 🤖 toggle in the Overview sidebar); when on, batch recovery runs automatically once a zone has ≥`ALERT_MIN_AFFECTED` compromised ONTs
 - `POST /api/attack` — launch a cross-province attack
 - `POST /api/recover/<zone-id>` — batch-recover a zone
+- `POST /api/analyze` — `{"q": "..."}` ask SEA-LION about the live case (omit `q` for the shift report)

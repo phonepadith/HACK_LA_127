@@ -2,6 +2,7 @@ __pycache__/
 *.pyc
 geoai.log
 devices.csv
+.env
 
 # attack map stack
 attackmap/db/*.mmdb

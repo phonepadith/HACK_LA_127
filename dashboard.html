@@ -134,6 +134,21 @@
   #attackBtn { width:100%; background:#12203A; color:var(--bad); border:1px solid var(--border);
                padding:7px; border-radius:6px; cursor:pointer; font-size:12px; }
   #attackBtn:hover { border-color:var(--bad); }
+  .ai-out { font-size:12px; white-space:pre-wrap; margin-bottom:8px; max-height:280px;
+            overflow-y:auto; border-left:2px solid var(--accent); padding-left:8px; }
+  .ai-out.err { color:var(--bad); border-left-color:var(--bad); }
+  .ai-out.busy { color:var(--dim); font-style:italic; }
+  .ai-model { color:var(--dim); font-size:10px; margin-top:6px; font-family:var(--mono); }
+  .ai-row { display:flex; gap:6px; margin-bottom:6px; }
+  .ai-row input { flex:1; min-width:0; background:#12203A; border:1px solid var(--border);
+                  color:var(--text); border-radius:6px; padding:6px 8px; font-size:12px; }
+  .ai-row input:focus { outline:0; border-color:var(--accent); }
+  .ai-row button, #ai-report { background:#12203A; color:var(--accent);
+                  border:1px solid var(--border); border-radius:6px; padding:6px 10px;
+                  cursor:pointer; font-size:12px; }
+  #ai-report { width:100%; }
+  .ai-row button:hover, #ai-report:hover { border-color:var(--accent); }
+  .ai-row button:disabled, #ai-report:disabled { opacity:.45; cursor:default; }
   .none { color:var(--dim); font-style:italic; }
   .iprow { display:flex; justify-content:space-between; padding:2px 0;
            font:12px ui-monospace,Menlo,monospace; }
@@ -301,6 +316,18 @@
       <section>
         <h2>Active hotspot alerts</h2>
         <div id="alerts"><div class="none">No active alerts</div></div>
+      </section>
+      <section>
+        <h2>🧠 AI analyst — SEA-LION</h2>
+        <div id="ai-out" class="ai-out none">Generate a short report on the current case,
+          or ask a question about it.</div>
+        <div class="ai-row">
+          <input id="ai-q" placeholder="Ask about this case…" autocomplete="off"
+                 onkeydown="if(event.key==='Enter')askAI()">
+          <button id="ai-ask" onclick="askAI()">Ask</button>
+        </div>
+        <button id="ai-report" onclick="askAI('')">📝 Short report</button>
+        <div class="ai-model" id="ai-model"></div>
       </section>
       <section>
         <h2>Top attacker sources (5 min)</h2>
@@ -708,6 +735,30 @@ function locateZone(id) {
       weight: 2, fillColor: '#FB5B6E', fillOpacity: 0.15 }).addTo(map);
     setTimeout(() => map.removeLayer(pulse), 3500);
   }, 100);
+}
+
+/* --- SEA-LION AI analyst: server proxies the call, the key never reaches the browser --- */
+async function askAI(q) {
+  const box = document.getElementById('ai-out');
+  const input = document.getElementById('ai-q');
+  const btns = [document.getElementById('ai-ask'), document.getElementById('ai-report')];
+  if (q === undefined) { q = input.value.trim(); if (!q) return input.focus(); }
+  box.className = 'ai-out busy';
+  box.textContent = q ? 'Analysing: ' + q : 'Writing the shift report…';
+  document.getElementById('ai-model').textContent = '';
+  btns.forEach(b => b.disabled = true);
+  try {
+    const r = await api('/api/analyze', { method: 'POST', body: JSON.stringify({ q }) });
+    const d = await r.json();
+    box.className = 'ai-out' + (d.answer ? '' : ' err');
+    box.textContent = d.answer || d.error || 'no answer';
+    if (d.model) document.getElementById('ai-model').textContent = d.model;
+    input.value = '';
+  } catch {
+    box.className = 'ai-out err';
+    box.textContent = 'AI analyst unreachable.';
+  }
+  btns.forEach(b => b.disabled = false);
 }
 
 /* --- live state --- */
