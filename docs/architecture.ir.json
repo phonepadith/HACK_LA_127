@@ -1,0 +1,510 @@
+{
+  "schema": "drawio-skill/diagram-ir/v1",
+  "metadata": {
+    "title": "GeoAI FTTH Security Intelligence Platform — System Architecture",
+    "description": "FTTH ONT account-takeover detection, GeoAI hotspot scoring, automated ACS recovery, and the GeoIP attack-map / Elastic analytics stack.",
+    "source": "geoai repository (simulator.py, pi_agent.py, attackmap/docker-compose.yml)"
+  },
+  "nodes": [
+    {
+      "id": "attacker",
+      "label": "Credential-stuffing attacker\nglobal source IP pool",
+      "kind": "external",
+      "group": "Field — FTTH network",
+      "properties": {
+        "trust_boundary": "internet",
+        "threat": "ONT account takeover"
+      },
+      "style": "rounded=1;whiteSpace=wrap;html=1;dashed=1;fillColor=#f8cecc;strokeColor=#b85450;",
+      "width": 200,
+      "height": 70
+    },
+    {
+      "id": "onts",
+      "label": "FTTH ONTs\n~260 across 18 province zones",
+      "kind": "device",
+      "group": "Field — FTTH network",
+      "properties": {
+        "trust_boundary": "subscriber",
+        "inventory": "devices.csv (optional)"
+      },
+      "style": "rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;",
+      "provenance": {
+        "path": "simulator.py",
+        "line": 99
+      },
+      "width": 200,
+      "height": 70
+    },
+    {
+      "id": "collectors",
+      "label": "OLT / ACS / RADIUS\nauth-log collectors",
+      "kind": "gateway",
+      "group": "Field — FTTH network",
+      "properties": {
+        "trust_boundary": "operator",
+        "events": "login_fail, cred_change, login_ok"
+      },
+      "style": "rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;",
+      "width": 200,
+      "height": 70
+    },
+    {
+      "id": "api",
+      "label": "HTTP API + session auth\nGEOAI_USER / X-Auth token",
+      "kind": "gateway",
+      "group": "CEIT server/GeoAI core — simulator.py :3030",
+      "properties": {
+        "environment": "production",
+        "trust_boundary": "private",
+        "endpoints": "/api/login, /api/state, /api/log, /api/attack, /api/recover, /api/auto"
+      },
+      "provenance": {
+        "path": "simulator.py",
+        "line": 437
+      },
+      "style": "rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;",
+      "width": 210,
+      "height": 70
+    },
+    {
+      "id": "detect",
+      "label": "AI detection engine\n≥5 fails / 60 s → suspicious\ncred change → compromised",
+      "kind": "service",
+      "group": "CEIT server/GeoAI core — simulator.py :3030",
+      "properties": {
+        "environment": "production",
+        "tuning": "WINDOW, SUSPICIOUS_FAILS, TAKEOVER_FAILS"
+      },
+      "provenance": {
+        "path": "simulator.py",
+        "line": 281
+      },
+      "style": "rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;",
+      "width": 210,
+      "height": 80
+    },
+    {
+      "id": "geoai",
+      "label": "GeoAI hotspot scoring\nper-zone risk 0–1 + alerts",
+      "kind": "service",
+      "group": "CEIT server/GeoAI core — simulator.py :3030",
+      "properties": {
+        "environment": "production",
+        "threshold": "ALERT_MIN_AFFECTED = 3",
+        "severity": "low → critical"
+      },
+      "provenance": {
+        "path": "simulator.py",
+        "line": 296
+      },
+      "style": "rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;",
+      "width": 210,
+      "height": 70
+    },
+    {
+      "id": "acs",
+      "label": "Automated ACS recovery\nbatch reset per zone (TR-069 stub)",
+      "kind": "service",
+      "group": "CEIT server/GeoAI core — simulator.py :3030",
+      "properties": {
+        "environment": "production",
+        "mode": "operator click or AI auto-approve"
+      },
+      "provenance": {
+        "path": "simulator.py",
+        "line": 329
+      },
+      "style": "rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;",
+      "width": 210,
+      "height": 70
+    },
+    {
+      "id": "state",
+      "label": "In-memory state + history\nONTs, zones, alerts, events",
+      "kind": "database",
+      "group": "CEIT server/GeoAI core — simulator.py :3030",
+      "properties": {
+        "persistence": "process memory (demo seeds 450 past attacks)"
+      },
+      "provenance": {
+        "path": "simulator.py",
+        "line": 351
+      },
+      "width": 190,
+      "height": 80
+    },
+    {
+      "id": "dashboard",
+      "label": "SOC dashboard (dashboard.html)\nOverview · Analytics · Events",
+      "kind": "ui",
+      "group": "CEIT server/SOC console",
+      "properties": {
+        "polling": "GET /api/state every 3 s",
+        "map": "Leaflet, 18 province risk rings"
+      },
+      "provenance": {
+        "path": "dashboard.html"
+      },
+      "style": "rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;",
+      "width": 220,
+      "height": 70
+    },
+    {
+      "id": "leaflet",
+      "label": "Leaflet + basemap tiles\n(CDN)",
+      "kind": "external",
+      "group": "CEIT server/SOC console",
+      "properties": {
+        "trust_boundary": "third-party"
+      },
+      "width": 170,
+      "height": 60
+    },
+    {
+      "id": "pi",
+      "label": "Raspberry Pi edge sensor\npi_agent.py :8080",
+      "kind": "device",
+      "group": "Edge site (Vientiane)",
+      "properties": {
+        "identity": "pi-sensor@<hostname>",
+        "poll": "3 s",
+        "capability": "detect + self-recover, own monitor UI"
+      },
+      "provenance": {
+        "path": "pi_agent.py",
+        "line": 82
+      },
+      "style": "rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;",
+      "width": 200,
+      "height": 70
+    },
+    {
+      "id": "logstash",
+      "label": "Logstash 8.15\ntcp :5055 json_lines + geoip",
+      "kind": "pipeline",
+      "group": "CEIT server/Attack-map stack — docker compose",
+      "properties": {
+        "image": "docker.elastic.co/logstash/logstash:8.15.0",
+        "enrichment": "GeoLite2 (license-free mirror)"
+      },
+      "provenance": {
+        "path": "attackmap/logstash/pipeline/geoai.conf"
+      },
+      "style": "shape=hexagon;perimeter=hexagonPerimeter2;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;",
+      "width": 210,
+      "height": 80
+    },
+    {
+      "id": "attacklog",
+      "label": "shared/attack.log\nCSV syslog line",
+      "kind": "file",
+      "group": "CEIT server/Attack-map stack — docker compose",
+      "properties": {
+        "format": "src_ip,dst_ip,src_port,dst_port,type_attack,cve"
+      },
+      "style": "shape=note;whiteSpace=wrap;html=1;size=14;fillColor=#f5f5f5;strokeColor=#666666;",
+      "width": 170,
+      "height": 70
+    },
+    {
+      "id": "dataserver",
+      "label": "DataServer\nGeoIP lookup + aggregation",
+      "kind": "service",
+      "group": "CEIT server/Attack-map stack — docker compose",
+      "properties": {
+        "upstream": "MatthewClarkMay/geoip-attack-map",
+        "hq_ip": "202.137.130.115 (Laos)"
+      },
+      "style": "rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;",
+      "width": 200,
+      "height": 70
+    },
+    {
+      "id": "redis",
+      "label": "Redis 7\npub/sub",
+      "kind": "queue",
+      "group": "CEIT server/Attack-map stack — docker compose",
+      "properties": {
+        "image": "redis:7-alpine"
+      },
+      "width": 150,
+      "height": 70
+    },
+    {
+      "id": "mapserver",
+      "label": "MapServer :8899\nNorse-style world attack map",
+      "kind": "ui",
+      "group": "CEIT server/Attack-map stack — docker compose",
+      "properties": {
+        "transport": "websocket (relative wss://)",
+        "port": "8899 → container 8888"
+      },
+      "provenance": {
+        "path": "attackmap/mapserver.py"
+      },
+      "style": "rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;",
+      "width": 210,
+      "height": 70
+    },
+    {
+      "id": "elasticsearch",
+      "label": "Elasticsearch 8.15\ngeoai-attacks-*",
+      "kind": "database",
+      "group": "CEIT server/Attack-map stack — docker compose",
+      "properties": {
+        "mode": "single-node, security disabled, internal only",
+        "bind": "127.0.0.1:9200"
+      },
+      "width": 190,
+      "height": 80
+    },
+    {
+      "id": "kibana",
+      "label": "Kibana :5601\nGeoAI — Attack Analytics",
+      "kind": "ui",
+      "group": "CEIT server/Attack-map stack — docker compose",
+      "properties": {
+        "provisioning": "attackmap/setup_kibana.py (index template, data view, TSVB dashboard)"
+      },
+      "provenance": {
+        "path": "attackmap/setup_kibana.py"
+      },
+      "style": "rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;",
+      "width": 200,
+      "height": 70
+    },
+    {
+      "id": "tunnel",
+      "label": "Cloudflare tunnel",
+      "kind": "gateway",
+      "properties": {
+        "trust_boundary": "public edge",
+        "exposes": "8899 world map, 5601 Kibana"
+      },
+      "style": "rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;",
+      "width": 170,
+      "height": 60
+    },
+    {
+      "id": "soc",
+      "label": "SOC operator",
+      "kind": "actor",
+      "properties": {
+        "auth": "sign-in screen, token-gated /api/*"
+      },
+      "width": 60,
+      "height": 80
+    }
+  ],
+  "edges": [
+    {
+      "id": "attacker-onts",
+      "source": "attacker",
+      "target": "onts",
+      "label": "credential stuffing",
+      "kind": "attack",
+      "properties": {
+        "signal": "repeated login_fail, then cred_change"
+      },
+      "style": "endArrow=classic;html=1;rounded=0;dashed=1;strokeColor=#b85450;"
+    },
+    {
+      "id": "onts-collectors",
+      "source": "onts",
+      "target": "collectors",
+      "label": "auth logs",
+      "kind": "async",
+      "properties": {}
+    },
+    {
+      "id": "collectors-api",
+      "source": "collectors",
+      "target": "api",
+      "label": "POST /api/log",
+      "kind": "sync",
+      "properties": {
+        "protocol": "HTTP JSON",
+        "mode": "--live disables synthetic traffic"
+      }
+    },
+    {
+      "id": "api-detect",
+      "source": "api",
+      "target": "detect",
+      "label": "ingest events",
+      "kind": "sync",
+      "properties": {}
+    },
+    {
+      "id": "detect-geoai",
+      "source": "detect",
+      "target": "geoai",
+      "label": "ONT status per zone",
+      "kind": "sync",
+      "properties": {}
+    },
+    {
+      "id": "geoai-acs",
+      "source": "geoai",
+      "target": "acs",
+      "label": "≥3 affected",
+      "kind": "sync",
+      "properties": {}
+    },
+    {
+      "id": "acs-collectors",
+      "source": "acs",
+      "target": "collectors",
+      "label": "batch config push / ONT reset",
+      "kind": "sync",
+      "properties": {
+        "note": "ACS stub — wire vendor TR-069/NETCONF here"
+      },
+      "style": "endArrow=classic;html=1;rounded=0;strokeColor=#82b366;"
+    },
+    {
+      "id": "detect-state",
+      "source": "detect",
+      "target": "state",
+      "label": "events",
+      "kind": "write",
+      "properties": {}
+    },
+    {
+      "id": "geoai-state",
+      "source": "geoai",
+      "target": "state",
+      "label": "alerts, history",
+      "kind": "write",
+      "properties": {}
+    },
+    {
+      "id": "api-state",
+      "source": "api",
+      "target": "state",
+      "label": "read state / history",
+      "kind": "sync",
+      "properties": {}
+    },
+    {
+      "id": "api-dashboard",
+      "source": "api",
+      "target": "dashboard",
+      "label": "state JSON (3 s poll)",
+      "kind": "sync",
+      "properties": {}
+    },
+    {
+      "id": "leaflet-dashboard",
+      "source": "leaflet",
+      "target": "dashboard",
+      "label": "tiles",
+      "kind": "sync",
+      "properties": {
+        "trust_boundary": "third-party"
+      },
+      "style": "endArrow=classic;html=1;rounded=0;dashed=1;strokeColor=#666666;"
+    },
+    {
+      "id": "dashboard-soc",
+      "source": "dashboard",
+      "target": "soc",
+      "label": "map, alerts, recover",
+      "kind": "sync",
+      "properties": {}
+    },
+    {
+      "id": "pi-api",
+      "source": "pi",
+      "target": "api",
+      "label": "login, poll, /api/recover",
+      "kind": "sync",
+      "properties": {
+        "attribution": "recoveries appear in the live feed as pi-sensor@<host>"
+      }
+    },
+    {
+      "id": "detect-logstash",
+      "source": "detect",
+      "target": "logstash",
+      "label": "attack event, TCP :5055\n(only when LOGSTASH_HOST set)",
+      "kind": "async",
+      "properties": {
+        "function": "ship_attack()"
+      }
+    },
+    {
+      "id": "logstash-es",
+      "source": "logstash",
+      "target": "elasticsearch",
+      "label": "index geoai-attacks-%{+YYYY.MM.dd}",
+      "kind": "write",
+      "properties": {}
+    },
+    {
+      "id": "logstash-attacklog",
+      "source": "logstash",
+      "target": "attacklog",
+      "label": "syslog line",
+      "kind": "write",
+      "properties": {}
+    },
+    {
+      "id": "attacklog-dataserver",
+      "source": "attacklog",
+      "target": "dataserver",
+      "label": "tail",
+      "kind": "async",
+      "properties": {}
+    },
+    {
+      "id": "dataserver-redis",
+      "source": "dataserver",
+      "target": "redis",
+      "label": "publish",
+      "kind": "async",
+      "properties": {}
+    },
+    {
+      "id": "redis-mapserver",
+      "source": "redis",
+      "target": "mapserver",
+      "label": "subscribe",
+      "kind": "async",
+      "properties": {}
+    },
+    {
+      "id": "es-kibana",
+      "source": "elasticsearch",
+      "target": "kibana",
+      "label": "queries",
+      "kind": "sync",
+      "properties": {}
+    },
+    {
+      "id": "mapserver-tunnel",
+      "source": "mapserver",
+      "target": "tunnel",
+      "label": ":8899",
+      "kind": "sync",
+      "properties": {}
+    },
+    {
+      "id": "kibana-tunnel",
+      "source": "kibana",
+      "target": "tunnel",
+      "label": ":5601",
+      "kind": "sync",
+      "properties": {}
+    },
+    {
+      "id": "tunnel-soc",
+      "source": "tunnel",
+      "target": "soc",
+      "label": "HTTPS",
+      "kind": "sync",
+      "properties": {}
+    }
+  ]
+}

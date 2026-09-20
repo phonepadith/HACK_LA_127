@@ -2,17 +2,23 @@
 
 Working simulation of the platform described in *GeoAI FTTH Security Intelligence Platform.docx*: detecting FTTH ONT account-takeover attacks in Vientiane, visualizing geographic hotspots, and batch-recovering compromised routers via a simulated ACS.
 
+## Architecture
+
+![System architecture](https://raw.githubusercontent.com/phonepadith/geoai-security/main/docs/architecture.png)
+
+Editable source: [docs/architecture.drawio](docs/architecture.drawio) (open at [app.diagrams.net](https://app.diagrams.net)) — generated from [docs/architecture.ir.json](docs/architecture.ir.json).
+
 ## Screenshots
 
 | | |
 |---|---|
-| ![Sign-in](docs/screenshots/01-login.png) **Sign-in** | ![Overview](docs/screenshots/02-overview.png) **Overview** — Laos map, ONT status, risk rings, Pi edge sensor |
-| ![Analytics](docs/screenshots/03-analytics.png) **Analytics** — attacks over time, target/origin provinces | ![Events](docs/screenshots/04-events.png) **Events** — full feed + top attacker sources |
+| ![Sign-in](https://raw.githubusercontent.com/phonepadith/geoai-security/main/docs/screenshots/01-login.png) **Sign-in** | ![Overview](https://raw.githubusercontent.com/phonepadith/geoai-security/main/docs/screenshots/02-overview.png) **Overview** — Laos map, ONT status, risk rings, Pi edge sensor |
+| ![Analytics](https://raw.githubusercontent.com/phonepadith/geoai-security/main/docs/screenshots/03-analytics.png) **Analytics** — attacks over time, target/origin provinces | ![Events](https://raw.githubusercontent.com/phonepadith/geoai-security/main/docs/screenshots/04-events.png) **Events** — full feed + top attacker sources |
 
-![Kibana](docs/screenshots/05-kibana.png)
+![Kibana](https://raw.githubusercontent.com/phonepadith/geoai-security/main/docs/screenshots/05-kibana.png)
 *Kibana — GeoAI Attack Analytics dashboard (attack source map, counters, histogram)*
 
-![World attack map](docs/screenshots/06-world-attack-map.png)
+![World attack map](https://raw.githubusercontent.com/phonepadith/geoai-security/main/docs/screenshots/06-world-attack-map.png)
 *GeoIP world attack map — Norse-style live arcs, per-service/country/IP counters, exploit feed*
 
 ## Run
