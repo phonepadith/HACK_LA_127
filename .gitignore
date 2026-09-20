@@ -6,3 +6,5 @@ devices.csv
 # attack map stack
 attackmap/db/*.mmdb
 attackmap/shared/*.log
+.claude/
+.DS_Store
