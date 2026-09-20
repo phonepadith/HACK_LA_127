@@ -2,6 +2,16 @@
 
 Working simulation of the platform described in *GeoAI FTTH Security Intelligence Platform.docx*: detecting FTTH ONT account-takeover attacks in Vientiane, visualizing geographic hotspots, and batch-recovering compromised routers via a simulated ACS.
 
+## Screenshots
+
+| | |
+|---|---|
+| ![Sign-in](docs/screenshots/01-login.png) **Sign-in** | ![Overview](docs/screenshots/02-overview.png) **Overview** — Laos map, ONT status, risk rings, Pi edge sensor |
+| ![Analytics](docs/screenshots/03-analytics.png) **Analytics** — attacks over time, target/origin provinces | ![Events](docs/screenshots/04-events.png) **Events** — full feed + top attacker sources |
+
+![Kibana](docs/screenshots/05-kibana.png)
+*Kibana — GeoAI Attack Analytics dashboard (attack source map, counters, histogram)*
+
 ## Run
 
 ```bash
