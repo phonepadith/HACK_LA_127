@@ -158,9 +158,9 @@ Three views in the sidebar menu:
 - **Analytics** — attack statistics with 24-hour / 30-day / 12-month range toggle: attacks-over-time chart, most-attacked provinces, attack-origin provinces. Demo mode seeds a year of synthetic history; live mode only accumulates real detections.
 - **Events** — full event feed and attacker source list.
 
-The Overview map has a **2D / 3D** toggle. 3D renders the same ONT markers, province risk
-rings and attack paths on tilted terrain (MapLibre GL + elevation data), with drag to rotate
-and ctrl+drag to tilt. MapLibre is fetched only when 3D is first pressed, so the default 2D
+The Overview map has a **2D / 3D** toggle. 3D renders each ONT as a standing 3D pin — coloured by
+status and upright as the camera moves — with the province risk rings and attack paths on
+tilted terrain (MapLibre GL + elevation data). Drag to rotate, ctrl+drag to tilt. MapLibre is fetched only when 3D is first pressed, so the default 2D
 view costs nothing; the view centre carries across when you switch.
 
 ## AI analyst (SEA-LION)

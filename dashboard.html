@@ -792,6 +792,45 @@ function ringGeo(lon, lat, metres, pts = 48) {
 }
 const fc = features => ({ type: 'FeatureCollection', features });
 
+/* Teardrop pin drawn on a canvas — shaded and shadowed so it reads as a
+   standing 3D marker rather than a flat dot. No image assets to ship. */
+function pinImage(color, px = 2) {
+  const w = 34, h = 48, cx = w / 2, cy = 15, r = 11;
+  const cv = document.createElement('canvas');
+  cv.width = w * px; cv.height = h * px;
+  const g = cv.getContext('2d');
+  g.scale(px, px);
+
+  g.save();                                   // ground shadow under the tip
+  g.globalAlpha = 0.35;
+  g.fillStyle = '#000';
+  g.beginPath(); g.ellipse(cx, h - 2.5, 6, 2.4, 0, 0, 7); g.fill();
+  g.restore();
+
+  g.beginPath();                              // teardrop body
+  g.moveTo(cx, h - 3);
+  g.quadraticCurveTo(cx - r * 1.05, cy + r * 0.85, cx - r, cy);
+  g.arc(cx, cy, r, Math.PI, 0);
+  g.quadraticCurveTo(cx + r * 1.05, cy + r * 0.85, cx, h - 3);
+  g.closePath();
+
+  const grad = g.createLinearGradient(cx - r, cy - r, cx + r, cy + r * 2);
+  grad.addColorStop(0, '#ffffff');            // lit edge
+  grad.addColorStop(0.22, color);
+  grad.addColorStop(1, '#0A1220');            // shaded edge
+  g.fillStyle = grad; g.fill();
+  g.lineWidth = 1.2; g.strokeStyle = '#0A1220'; g.stroke();
+
+  g.beginPath();                              // inner hole
+  g.arc(cx, cy, r * 0.42, 0, 7);
+  g.fillStyle = '#0A1220'; g.fill();
+  g.beginPath();                              // specular highlight
+  g.arc(cx - r * 0.34, cy - r * 0.40, r * 0.26, 0, 7);
+  g.fillStyle = 'rgba(255,255,255,.55)'; g.fill();
+
+  return { data: g.getImageData(0, 0, cv.width, cv.height), pixelRatio: px };
+}
+
 function loadMapLibre() {
   if (window.maplibregl) return Promise.resolve();
   if (map3Loading) return map3Loading;
@@ -817,8 +856,13 @@ function init3D() {
   map3.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'top-left');
   map3.on('error', e => console.warn('[geoai:3d]', (e.error && e.error.message) || e.type));
   /* The map is created while its container is still hidden, and in that case
-     MapLibre's 'load' event never fires — gate on the style instead. */
+     MapLibre's 'load' event never fires — gate on the style instead. 'styledata'
+     fires repeatedly (every addImage/addSource triggers another), so the guard
+     has to be a flag set on entry, not a check for something build() creates. */
+  let built = false;
   const build = () => {
+    if (built) return;
+    built = true;
     map3.addSource('dem', { type: 'raster-dem', tiles: [DEM], encoding: 'terrarium',
                             tileSize: 256, maxzoom: 13 });
     map3.setTerrain({ source: 'dem', exaggeration: 1.6 });
@@ -839,12 +883,21 @@ function init3D() {
       paint: { 'line-color': '#FB5B6E', 'line-width': 2.5, 'line-opacity': 0.9,
                'line-dasharray': [2, 2] } });
 
+    for (const [status, color] of Object.entries(COLORS)) {
+      const img = pinImage(color);
+      if (!map3.hasImage('pin-' + status))
+        map3.addImage('pin-' + status, img.data, { pixelRatio: img.pixelRatio });
+    }
     map3.addSource('onts', { type: 'geojson', data: fc([]) });
-    map3.addLayer({ id: 'ont-dots', type: 'circle', source: 'onts',
-      paint: { 'circle-radius': ['interpolate', ['linear'], ['zoom'], 5, 2.5, 10, 6],
-               'circle-color': ['get', 'color'],
-               'circle-opacity': ['get', 'opacity'],
-               'circle-stroke-width': 0.6, 'circle-stroke-color': '#0A1220' } });
+    map3.addLayer({ id: 'ont-pins', type: 'symbol', source: 'onts',
+      layout: { 'icon-image': ['concat', 'pin-', ['get', 'status']],
+                'icon-anchor': 'bottom',
+                'icon-size': ['interpolate', ['linear'], ['zoom'], 6, 0.4, 9, 0.7, 13, 1],
+                'icon-allow-overlap': true, 'icon-ignore-placement': true,
+                /* keep pins upright and facing the camera as it tilts/rotates */
+                'icon-pitch-alignment': 'viewport',
+                'icon-rotation-alignment': 'viewport' },
+      paint: { 'icon-opacity': ['get', 'opacity'] } });
 
     map3.addSource('hubs', { type: 'geojson', data: fc([]) });
     map3.addLayer({ id: 'hub-dots', type: 'circle', source: 'hubs',
@@ -857,7 +910,7 @@ function init3D() {
                'text-halo-width': 1.4 } });
 
     const pop = new maplibregl.Popup({ closeButton: false, className: 'ml-popup' });
-    for (const layer of ['ont-dots', 'hub-dots']) {
+    for (const layer of ['ont-pins', 'hub-dots']) {
       map3.on('mouseenter', layer, e => {
         map3.getCanvas().style.cursor = 'pointer';
         pop.setLngLat(e.features[0].geometry.coordinates)
@@ -872,7 +925,7 @@ function init3D() {
   /* 'styledata' fires as soon as the style JSON is parsed, which is all that
      adding sources and layers needs. 'load' additionally waits for the first
      render, and a backgrounded tab never gets one. */
-  map3.on('styledata', () => { if (!map3.getLayer('ont-dots')) build(); });
+  map3.on('styledata', build);
 }
 
 /* mirror the live state onto the 3D layers — same data the Leaflet view uses */
@@ -880,8 +933,9 @@ function update3D(s) {
   if (!map3 || !map3.getSource('onts')) return;
   map3.getSource('onts').setData(fc(s.onts.map(o => ({
     type: 'Feature', geometry: { type: 'Point', coordinates: [o.lon, o.lat] },
-    properties: { color: COLORS[o.status], label: `${o.id} — ${o.status}`,
-                  opacity: o.status === 'normal' ? 0.55 : 0.95 },
+    properties: { status: o.status, color: COLORS[o.status],
+                  label: `${o.id} — ${o.status}`,
+                  opacity: o.status === 'normal' ? 0.75 : 1 },
   }))));
   map3.getSource('zones').setData(fc(s.olts.map(z => ({
     type: 'Feature', geometry: ringGeo(z.lon, z.lat, 11000),
