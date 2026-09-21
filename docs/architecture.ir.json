@@ -299,7 +299,7 @@
     },
     {
       "id": "sealion",
-      "label": "SEA-LION LLM (external)\nGemma-SEA-LION-v4-27B-IT",
+      "label": "LLM (external)\nAI analyst — case analysis + report",
       "kind": "external",
       "group": "External AI",
       "properties": {
