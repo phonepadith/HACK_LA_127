@@ -72,6 +72,7 @@ GeoIP data is MaxMind **GeoLite2-City** from a license-free mirror (`attackmap/d
 | Ingress | Cloudflare tunnel → `geoai-ftth-demo`, `attackmap`, `kibana-dashboard` `.laopadit.com` |
 | Deploy | `deploy.sh` (tar over SSH, restart), `deploy_attackmap.sh` (compose build + Kibana provisioning), `deploy_pi.sh` — no CI |
 | Secrets | Environment variables; `.env` is git-ignored and forwarded by `deploy.sh` |
+| Install agent | [`agent/`](agent/) — LangGraph ReAct agent on OpenAI, fixed-template SSH tools, dry-run by default; the only component with third-party deps |
 | Data export | `export_stats.py` → [`data/*.csv`](data/) — attack timeseries, per-zone totals, live zone status, attacker IPs |
 | Tests | `python3 simulator.py --check` — attack → detect → alert → recover, stats, live ingestion, auth gate, AI brief |
 
@@ -188,6 +189,16 @@ the state is labelled as data rather than instructions. It is decision support, 
 autonomous actor — it cannot trigger recovery; only the operator or the auto-approve toggle can.
 
 ## Raspberry Pi edge sensor
+
+New nodes can be provisioned by an **[agentic installer](agent/)** (LangGraph + OpenAI):
+it checks the host, ships the agent, installs the systemd unit, and confirms the sensor
+actually registers with the server before calling the install done.
+
+```bash
+python3 agent/install_sensor_agent.py --host kobi@192.168.0.110 --zone LPB          # dry run
+python3 agent/install_sensor_agent.py --host kobi@192.168.0.110 --zone LPB --apply  # install
+```
+
 
 [pi_agent.py](pi_agent.py) turns a Raspberry Pi into an edge monitor/sensor for the ONT server: it logs into the GeoAI API, polls the network state, detects hacked ONTs, performs the batch recovery itself, and every recovery it makes appears in the main GeoAI dashboard's live feed attributed to the sensor (`pi-sensor@<hostname>`). It serves its own monitor UI on port 8080 — server map, connection status, hack-simulation button, auto-recover toggle, and an action log.
 
