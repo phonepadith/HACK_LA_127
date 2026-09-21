@@ -2,7 +2,7 @@
   "schema": "drawio-skill/diagram-ir/v1",
   "metadata": {
     "title": "GeoAI FTTH Security Intelligence Platform — System Architecture",
-    "description": "FTTH ONT account-takeover detection, GeoAI hotspot scoring, automated ACS recovery, SEA-LION AI analyst, and the GeoIP attack-map / Elastic analytics stack.",
+    "description": "FTTH ONT account-takeover detection, GeoAI hotspot scoring, automated ACS recovery, an external LLM analyst, and the GeoIP attack-map / Elastic analytics stack.",
     "source": "geoai repository (simulator.py, pi_agent.py, attackmap/docker-compose.yml)"
   },
   "nodes": [
@@ -298,14 +298,14 @@
       "height": 80
     },
     {
-      "id": "sealion",
+      "id": "llm",
       "label": "LLM (external)\nAI analyst — case analysis + report",
       "kind": "external",
       "group": "External AI",
       "properties": {
         "trust_boundary": "third-party",
-        "endpoint": "api.sea-lion.ai — OpenAI-compatible",
-        "key": "SEALION_API_KEY, server-side only — never sent to the browser",
+        "endpoint": "external LLM API — OpenAI-compatible chat completions",
+        "key": "API key server-side only — never sent to the browser",
         "role": "shift report + operator Q&A on the live case"
       },
       "provenance": {
@@ -527,9 +527,9 @@
       "properties": {}
     },
     {
-      "id": "api-sealion",
+      "id": "api-llm",
       "source": "api",
-      "target": "sealion",
+      "target": "llm",
       "label": "POST /api/analyze:\ncase brief ⇄ report",
       "kind": "sync",
       "properties": {
