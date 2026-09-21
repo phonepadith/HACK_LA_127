@@ -30,7 +30,8 @@ separate Docker stack that can be switched off without touching detection.
 | | |
 |---|---|
 | UI | Vanilla JS + CSS custom properties, no framework |
-| Map | [Leaflet](https://leafletjs.com) 1.9.4 (unpkg) |
+| Map (2D) | [Leaflet](https://leafletjs.com) 1.9.4 (unpkg), Google raster tiles |
+| Map (3D) | [MapLibre GL](https://maplibre.org) 5.6.1, lazy-loaded — CARTO dark vector basemap + AWS terrarium elevation tiles, both keyless |
 | Charts | [ApexCharts](https://apexcharts.com) (jsDelivr) |
 | Type | IBM Plex Sans / Mono (Google Fonts) |
 | Data | Polls `GET /api/state` every 3 s; `GET /api/stats?range=` for the analytics view |
@@ -156,6 +157,11 @@ Three views in the sidebar menu:
 - **Overview** — country-wide map of all 18 Laos provinces, ONT status markers, province risk rings, active attack path (origin → target, dashed red line), hotspot alerts with origin province, top attacker IPs, live event feed.
 - **Analytics** — attack statistics with 24-hour / 30-day / 12-month range toggle: attacks-over-time chart, most-attacked provinces, attack-origin provinces. Demo mode seeds a year of synthetic history; live mode only accumulates real detections.
 - **Events** — full event feed and attacker source list.
+
+The Overview map has a **2D / 3D** toggle. 3D renders the same ONT markers, province risk
+rings and attack paths on tilted terrain (MapLibre GL + elevation data), with drag to rotate
+and ctrl+drag to tilt. MapLibre is fetched only when 3D is first pressed, so the default 2D
+view costs nothing; the view centre carries across when you switch.
 
 ## AI analyst (SEA-LION)
 

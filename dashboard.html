@@ -82,7 +82,27 @@
   .view.active { display:flex; }
 
   /* --- Overview --- */
-  #map { flex:1; background:var(--bg); }
+  #mapwrap { flex:1; position:relative; min-width:0; }
+  #map, #map3d { position:absolute; inset:0; background:var(--bg); }
+  #map3d canvas { outline:none; }
+  .mapmode { position:absolute; top:10px; right:10px; z-index:500; display:flex;
+             border:1px solid var(--border); border-radius:6px; overflow:hidden;
+             background:rgba(15,27,45,.92); backdrop-filter:blur(4px); }
+  .mapmode button { background:transparent; border:0; color:var(--dim); cursor:pointer;
+                    padding:5px 11px; font-size:11px; font-weight:600; letter-spacing:.04em; }
+  .mapmode button.on { background:var(--accent); color:#04141F; }
+  .mapmode button:not(.on):hover { color:var(--text); }
+  #map3dhint { position:absolute; bottom:10px; right:10px; z-index:500; font-size:10px;
+               color:var(--dim); background:rgba(15,27,45,.85); border:1px solid var(--border);
+               border-radius:5px; padding:3px 8px; pointer-events:none; }
+  .ml-popup .maplibregl-popup-content { background:var(--panel); color:var(--text);
+               border:1px solid var(--border); border-radius:6px; font-size:12px;
+               padding:6px 9px; box-shadow:0 6px 18px rgba(0,0,0,.5); }
+  .ml-popup .maplibregl-popup-tip { border-top-color:var(--panel); }
+  .maplibregl-ctrl-group { background:var(--panel) !important; border:1px solid var(--border); }
+  .maplibregl-ctrl-group button + button { border-top:1px solid var(--border); }
+  .maplibregl-ctrl-attrib { background:rgba(10,18,32,.7) !important; font-size:10px; }
+  .maplibregl-ctrl-attrib a { color:var(--dim); }
   /* dark theme for the (light-only) keyless Google street tiles */
   .leaflet-tile-pane { filter:invert(92%) hue-rotate(180deg) brightness(.9) contrast(.92)
                        saturate(.55); }
@@ -225,7 +245,7 @@
     .kpis { grid-template-columns:repeat(3,1fr); }
     .kpi b { font-size:16px; }
     #view-overview.active { flex-direction:column; overflow-y:auto; }
-    #map { flex:none; height:48vh; min-height:280px; }
+    #mapwrap { flex:none; height:48vh; min-height:280px; }
     #view-overview aside { width:100%; border-left:0; border-top:1px solid var(--border);
             overflow:visible; }
     .legend { display:none; }
@@ -290,7 +310,15 @@
 <main>
 
   <div class="view active" id="view-overview">
-    <div id="map"></div>
+    <div id="mapwrap">
+      <div id="map"></div>
+      <div id="map3d" hidden></div>
+      <div class="mapmode">
+        <button id="mode2d" class="on" onclick="setMapMode('2d')">2D</button>
+        <button id="mode3d" onclick="setMapMode('3d')">3D</button>
+      </div>
+      <div id="map3dhint" hidden>drag to rotate · ctrl+drag to tilt</div>
+    </div>
     <div class="legend">
       <div><i style="background:var(--ok)"></i>Normal ONT</div>
       <div><i style="background:var(--warn)"></i>Suspicious (AI-flagged)</div>
@@ -660,7 +688,8 @@ document.querySelectorAll('.sidebar .tab').forEach(b => b.onclick = () => {
   document.querySelectorAll('.sidebar .tab').forEach(x => x.classList.toggle('active', x === b));
   document.querySelectorAll('.view').forEach(v =>
     v.classList.toggle('active', v.id === 'view-' + currentView));
-  if (currentView === 'overview') setTimeout(() => map.invalidateSize(), 50);
+  if (currentView === 'overview') setTimeout(() =>
+    mapMode === '3d' ? map3 && map3.resize() : map.invalidateSize(), 50);
   if (currentView === 'analytics') setTimeout(loadStats, 50);
 });
 
@@ -729,12 +758,179 @@ function locateZone(id) {
   const o = zoneIndex[id];
   if (!o) return;
   document.querySelector('[data-view="overview"]').click();
+  if (mapMode === '3d') {
+    return setTimeout(() => map3 && map3.flyTo(
+      { center: [o.lon, o.lat], zoom: 9.5, pitch: 65, duration: 1600 }), 100);
+  }
   setTimeout(() => {
     map.flyTo([o.lat, o.lon], 10, { duration: 1.2 });
     const pulse = L.circle([o.lat, o.lon], { radius: 14000, color: '#FB5B6E',
       weight: 2, fillColor: '#FB5B6E', fillOpacity: 0.15 }).addTo(map);
     setTimeout(() => map.removeLayer(pulse), 3500);
   }, 100);
+}
+
+/* --- 3D terrain view -------------------------------------------------------
+   MapLibre GL renders the same ONT / zone / attack data over real elevation.
+   Everything here is lazy: the library is only fetched the first time the
+   operator presses 3D, so the default 2D dashboard costs nothing. --------- */
+const ML_JS  = 'https://unpkg.com/maplibre-gl@5.6.1/dist/maplibre-gl.js';
+const ML_CSS = 'https://unpkg.com/maplibre-gl@5.6.1/dist/maplibre-gl.css';
+const DEM = 'https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png';
+const BASEMAP = 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json';
+
+let mapMode = '2d', map3 = null, map3Loading = null, lastState = null;
+
+/* metre-accurate ring as a polygon — MapLibre circle radii are in pixels */
+function ringGeo(lon, lat, metres, pts = 48) {
+  const dLat = metres / 111320, dLon = dLat / Math.cos(lat * Math.PI / 180), ring = [];
+  for (let i = 0; i <= pts; i++) {
+    const a = i / pts * 2 * Math.PI;
+    ring.push([lon + dLon * Math.cos(a), lat + dLat * Math.sin(a)]);
+  }
+  return { type: 'Polygon', coordinates: [ring] };
+}
+const fc = features => ({ type: 'FeatureCollection', features });
+
+function loadMapLibre() {
+  if (window.maplibregl) return Promise.resolve();
+  if (map3Loading) return map3Loading;
+  map3Loading = new Promise((ok, fail) => {
+    const css = document.createElement('link');
+    css.rel = 'stylesheet'; css.href = ML_CSS;
+    document.head.appendChild(css);
+    const js = document.createElement('script');
+    js.src = ML_JS; js.onload = ok;
+    js.onerror = () => fail(new Error('could not load maplibre-gl from the CDN'));
+    document.head.appendChild(js);
+  });
+  return map3Loading;
+}
+
+function init3D() {
+  const c = map.getCenter();
+  map3 = new maplibregl.Map({
+    container: 'map3d', style: BASEMAP, center: [c.lng, c.lat],
+    zoom: Math.max(map.getZoom() - 1, 5), pitch: 62, bearing: -18,
+    maxPitch: 80, attributionControl: { compact: true },
+  });
+  map3.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'top-left');
+  map3.on('error', e => console.warn('[geoai:3d]', (e.error && e.error.message) || e.type));
+  /* The map is created while its container is still hidden, and in that case
+     MapLibre's 'load' event never fires — gate on the style instead. */
+  const build = () => {
+    map3.addSource('dem', { type: 'raster-dem', tiles: [DEM], encoding: 'terrarium',
+                            tileSize: 256, maxzoom: 13 });
+    map3.setTerrain({ source: 'dem', exaggeration: 1.6 });
+    try {  // atmosphere behind the horizon; older MapLibre builds lack setSky
+      map3.setSky({ 'sky-color': '#0A1220', 'horizon-color': '#12203A',
+                    'fog-color': '#0A1220', 'sky-horizon-blend': 0.6,
+                    'horizon-fog-blend': 0.5, 'fog-ground-blend': 0.2 });
+    } catch (e) { console.warn('[geoai:3d] sky unavailable:', e.message); }
+
+    map3.addSource('zones', { type: 'geojson', data: fc([]) });
+    map3.addLayer({ id: 'zone-fill', type: 'fill', source: 'zones',
+      paint: { 'fill-color': ['get', 'color'], 'fill-opacity': ['get', 'opacity'] } });
+    map3.addLayer({ id: 'zone-line', type: 'line', source: 'zones',
+      paint: { 'line-color': ['get', 'color'], 'line-width': 1.5, 'line-opacity': 0.9 } });
+
+    map3.addSource('attack', { type: 'geojson', data: fc([]) });
+    map3.addLayer({ id: 'attack-line', type: 'line', source: 'attack',
+      paint: { 'line-color': '#FB5B6E', 'line-width': 2.5, 'line-opacity': 0.9,
+               'line-dasharray': [2, 2] } });
+
+    map3.addSource('onts', { type: 'geojson', data: fc([]) });
+    map3.addLayer({ id: 'ont-dots', type: 'circle', source: 'onts',
+      paint: { 'circle-radius': ['interpolate', ['linear'], ['zoom'], 5, 2.5, 10, 6],
+               'circle-color': ['get', 'color'],
+               'circle-opacity': ['get', 'opacity'],
+               'circle-stroke-width': 0.6, 'circle-stroke-color': '#0A1220' } });
+
+    map3.addSource('hubs', { type: 'geojson', data: fc([]) });
+    map3.addLayer({ id: 'hub-dots', type: 'circle', source: 'hubs',
+      paint: { 'circle-radius': 6, 'circle-color': '#0d1117',
+               'circle-stroke-width': 2, 'circle-stroke-color': '#22D3EE' } });
+    map3.addLayer({ id: 'hub-labels', type: 'symbol', source: 'hubs',
+      layout: { 'text-field': ['get', 'name'], 'text-size': 11,
+                'text-offset': [0, 1.3], 'text-anchor': 'top' },
+      paint: { 'text-color': '#EAF4FF', 'text-halo-color': '#0A1220',
+               'text-halo-width': 1.4 } });
+
+    const pop = new maplibregl.Popup({ closeButton: false, className: 'ml-popup' });
+    for (const layer of ['ont-dots', 'hub-dots']) {
+      map3.on('mouseenter', layer, e => {
+        map3.getCanvas().style.cursor = 'pointer';
+        pop.setLngLat(e.features[0].geometry.coordinates)
+           .setHTML(e.features[0].properties.label).addTo(map3);
+      });
+      map3.on('mouseleave', layer, () => {
+        map3.getCanvas().style.cursor = ''; pop.remove();
+      });
+    }
+    if (lastState) update3D(lastState);
+  };
+  /* 'styledata' fires as soon as the style JSON is parsed, which is all that
+     adding sources and layers needs. 'load' additionally waits for the first
+     render, and a backgrounded tab never gets one. */
+  map3.on('styledata', () => { if (!map3.getLayer('ont-dots')) build(); });
+}
+
+/* mirror the live state onto the 3D layers — same data the Leaflet view uses */
+function update3D(s) {
+  if (!map3 || !map3.getSource('onts')) return;
+  map3.getSource('onts').setData(fc(s.onts.map(o => ({
+    type: 'Feature', geometry: { type: 'Point', coordinates: [o.lon, o.lat] },
+    properties: { color: COLORS[o.status], label: `${o.id} — ${o.status}`,
+                  opacity: o.status === 'normal' ? 0.55 : 0.95 },
+  }))));
+  map3.getSource('zones').setData(fc(s.olts.map(z => ({
+    type: 'Feature', geometry: ringGeo(z.lon, z.lat, 11000),
+    properties: { color: riskColor(z.risk), opacity: 0.05 + z.risk * 0.3 },
+  }))));
+  map3.getSource('hubs').setData(fc(s.olts.map(z => ({
+    type: 'Feature', geometry: { type: 'Point', coordinates: [z.lon, z.lat] },
+    properties: { name: z.name, label: `${z.name} (${z.id}) — risk ${z.risk}` },
+  }))));
+  map3.getSource('attack').setData(fc(s.attack ? [{
+    type: 'Feature',
+    geometry: { type: 'LineString',
+                coordinates: [[s.attack.from.lon, s.attack.from.lat],
+                              [s.attack.to.lon, s.attack.to.lat]] },
+    properties: {},
+  }] : []));
+}
+
+async function setMapMode(mode) {
+  if (mode === mapMode) return;
+  const b2 = document.getElementById('mode3d');
+  if (mode === '3d') {
+    b2.textContent = '…';
+    try { await loadMapLibre(); } catch (e) {
+      b2.textContent = '3D';
+      alert('3D view unavailable: ' + e.message);
+      return;
+    }
+    b2.textContent = '3D';
+  }
+  mapMode = mode;
+  document.getElementById('mode2d').classList.toggle('on', mode === '2d');
+  document.getElementById('mode3d').classList.toggle('on', mode === '3d');
+  document.getElementById('map').hidden = mode === '3d';
+  document.getElementById('map3d').hidden = mode !== '3d';
+  document.getElementById('map3dhint').hidden = mode !== '3d';
+  if (mode === '3d') {
+    if (!map3) init3D();
+    else {
+      const c = map.getCenter();
+      map3.jumpTo({ center: [c.lng, c.lat], zoom: Math.max(map.getZoom() - 1, 5) });
+      map3.resize();
+      if (lastState) update3D(lastState);
+    }
+  } else {
+    if (map3) map.setView([map3.getCenter().lat, map3.getCenter().lng],
+                          Math.round(map3.getZoom()) + 1, { animate: false });
+    map.invalidateSize();
+  }
 }
 
 /* --- SEA-LION AI analyst: server proxies the call, the key never reaches the browser --- */
@@ -810,6 +1006,9 @@ async function refresh() {
       fillOpacity: 0.05 + olt.risk * 0.25,
       dashArray: s.attack && s.attack.zone === olt.id ? '4 4' : null });
   }
+  lastState = s;
+  if (mapMode === '3d') update3D(s);
+
   /* attack path: flowing dashed line + tracer dot shooting origin -> target */
   const key = s.attack ? `${s.attack.from.name}>${s.attack.zone}` : null;
   if (key !== attackKey) {
