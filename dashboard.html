@@ -792,41 +792,68 @@ function ringGeo(lon, lat, metres, pts = 48) {
 }
 const fc = features => ({ type: 'FeatureCollection', features });
 
-/* Teardrop pin drawn on a canvas — shaded and shadowed so it reads as a
-   standing 3D marker rather than a flat dot. No image assets to ship. */
+/* ONT pin: a translucent glass teardrop with a luminous rim, an outer glow and
+   a solid core, drawn on a canvas at runtime so no image assets ship. The body
+   is see-through so pins behind it and the terrain underneath stay readable
+   when markers stack up inside a province. */
+const rgba = (hex, a) => {
+  const n = parseInt(hex.slice(1), 16);
+  return `rgba(${n >> 16 & 255},${n >> 8 & 255},${n & 255},${a})`;
+};
+
 function pinImage(color, px = 2) {
-  const w = 34, h = 48, cx = w / 2, cy = 15, r = 11;
+  const w = 44, h = 60, cx = w / 2, cy = 21, r = 12, tip = h - 8;
   const cv = document.createElement('canvas');
   cv.width = w * px; cv.height = h * px;
   const g = cv.getContext('2d');
   g.scale(px, px);
 
-  g.save();                                   // ground shadow under the tip
-  g.globalAlpha = 0.35;
+  const body = () => {                        // teardrop outline
+    g.beginPath();
+    g.moveTo(cx, tip);
+    g.quadraticCurveTo(cx - r * 1.02, cy + r * 0.82, cx - r, cy);
+    g.arc(cx, cy, r, Math.PI, 0);
+    g.quadraticCurveTo(cx + r * 1.02, cy + r * 0.82, cx, tip);
+    g.closePath();
+  };
+
+  g.save();                                   // contact shadow on the ground
+  g.globalAlpha = 0.3;
   g.fillStyle = '#000';
-  g.beginPath(); g.ellipse(cx, h - 2.5, 6, 2.4, 0, 0, 7); g.fill();
+  g.beginPath(); g.ellipse(cx, tip + 3.5, 5.5, 2, 0, 0, 7); g.fill();
   g.restore();
 
-  g.beginPath();                              // teardrop body
-  g.moveTo(cx, h - 3);
-  g.quadraticCurveTo(cx - r * 1.05, cy + r * 0.85, cx - r, cy);
-  g.arc(cx, cy, r, Math.PI, 0);
-  g.quadraticCurveTo(cx + r * 1.05, cy + r * 0.85, cx, h - 3);
-  g.closePath();
+  g.save();                                   // outer glow, from the rim
+  g.shadowColor = rgba(color, 0.95);
+  g.shadowBlur = 9;
+  g.lineWidth = 1.6;
+  g.strokeStyle = rgba(color, 0.95);
+  body(); g.stroke(); g.stroke();
+  g.restore();
 
-  const grad = g.createLinearGradient(cx - r, cy - r, cx + r, cy + r * 2);
-  grad.addColorStop(0, '#ffffff');            // lit edge
-  grad.addColorStop(0.22, color);
-  grad.addColorStop(1, '#0A1220');            // shaded edge
-  g.fillStyle = grad; g.fill();
-  g.lineWidth = 1.2; g.strokeStyle = '#0A1220'; g.stroke();
+  const glass = g.createLinearGradient(0, cy - r, 0, tip);
+  glass.addColorStop(0, rgba(color, 0.58));   // brighter at the top
+  glass.addColorStop(0.55, rgba(color, 0.30));
+  glass.addColorStop(1, rgba(color, 0.12));   // nearly clear at the tip
+  body(); g.fillStyle = glass; g.fill();
 
-  g.beginPath();                              // inner hole
-  g.arc(cx, cy, r * 0.42, 0, 7);
-  g.fillStyle = '#0A1220'; g.fill();
-  g.beginPath();                              // specular highlight
-  g.arc(cx - r * 0.34, cy - r * 0.40, r * 0.26, 0, 7);
-  g.fillStyle = 'rgba(255,255,255,.55)'; g.fill();
+  g.save();                                   // crisp rim over the glass
+  g.lineWidth = 1.4; g.strokeStyle = rgba(color, 0.95);
+  body(); g.stroke();
+  g.restore();
+
+  g.save();                                   // solid core — the part that still
+  g.shadowColor = rgba(color, 0.9);           // reads when the pin is 18px tall
+  g.shadowBlur = 5;
+  g.beginPath(); g.arc(cx, cy, r * 0.4, 0, 7);
+  g.fillStyle = color; g.fill();
+  g.restore();
+  g.lineWidth = 0.9; g.strokeStyle = rgba('#EAF4FF', 0.75);
+  g.beginPath(); g.arc(cx, cy, r * 0.4, 0, 7); g.stroke();
+
+  g.beginPath();                              // glass highlight, upper left
+  g.arc(cx, cy, r * 0.72, Math.PI * 1.08, Math.PI * 1.62);
+  g.lineWidth = 1.8; g.strokeStyle = rgba('#FFFFFF', 0.45); g.stroke();
 
   return { data: g.getImageData(0, 0, cv.width, cv.height), pixelRatio: px };
 }
