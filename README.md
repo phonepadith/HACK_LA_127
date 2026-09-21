@@ -72,6 +72,7 @@ GeoIP data is MaxMind **GeoLite2-City** from a license-free mirror (`attackmap/d
 | Ingress | Cloudflare tunnel → `geoai-ftth-demo`, `attackmap`, `kibana-dashboard` `.laopadit.com` |
 | Deploy | `deploy.sh` (tar over SSH, restart), `deploy_attackmap.sh` (compose build + Kibana provisioning), `deploy_pi.sh` — no CI |
 | Secrets | Environment variables; `.env` is git-ignored and forwarded by `deploy.sh` |
+| Data export | `export_stats.py` → [`data/*.csv`](data/) — attack timeseries, per-zone totals, live zone status, attacker IPs |
 | Tests | `python3 simulator.py --check` — attack → detect → alert → recover, stats, live ingestion, auth gate, AI brief |
 
 ## Screenshots

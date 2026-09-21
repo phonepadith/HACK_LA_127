@@ -1,0 +1,61 @@
+range,direction,zone,attacks
+day,target,Attapeu,11
+day,target,Bolikhamxay,8
+day,target,Phongsaly,8
+day,target,Salavan,8
+day,target,Champasak,7
+day,target,Bokeo,7
+day,target,Savannakhet,7
+day,target,Sekong,6
+day,target,Vientiane Capital,5
+day,target,Xayaboury,5
+day,origin,Vientiane Province,11
+day,origin,Xiengkhouang,8
+day,origin,Xaysomboun,7
+day,origin,Attapeu,7
+day,origin,Savannakhet,7
+day,origin,Luang Prabang,7
+day,origin,Bokeo,6
+day,origin,Champasak,6
+day,origin,Khammouane,6
+day,origin,Oudomxay,5
+month,target,Bokeo,15
+month,target,Champasak,15
+month,target,Salavan,15
+month,target,Bolikhamxay,13
+month,target,Xayaboury,13
+month,target,Xaysomboun,12
+month,target,Vientiane Capital,12
+month,target,Attapeu,12
+month,target,Sekong,11
+month,target,Phongsaly,10
+month,origin,Attapeu,15
+month,origin,Xaysomboun,13
+month,origin,Champasak,12
+month,origin,Xiengkhouang,12
+month,origin,Savannakhet,12
+month,origin,Vientiane Province,12
+month,origin,Vientiane Capital,11
+month,origin,Luang Namtha,11
+month,origin,Bokeo,11
+month,origin,Houaphanh,9
+year,target,Salavan,35
+year,target,Champasak,34
+year,target,Attapeu,34
+year,target,Bokeo,34
+year,target,Xayaboury,33
+year,target,Sekong,32
+year,target,Phongsaly,32
+year,target,Xaysomboun,31
+year,target,Vientiane Capital,31
+year,target,Bolikhamxay,31
+year,origin,Xaysomboun,38
+year,origin,Luang Namtha,37
+year,origin,Oudomxay,36
+year,origin,Khammouane,35
+year,origin,Vientiane Province,34
+year,origin,Xiengkhouang,33
+year,origin,Savannakhet,31
+year,origin,Sekong,30
+year,origin,Champasak,29
+year,origin,Xayaboury,29

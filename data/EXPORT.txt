@@ -1,0 +1,6 @@
+source: https://geoai-ftth-demo.laopadit.com
+exported: 2026-09-21 10:50:44+0800
+mode: simulation
+server time: t=6010.0
+attacks_detected: 89
+onts_recovered: 586

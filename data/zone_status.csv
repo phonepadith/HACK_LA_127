@@ -1,0 +1,19 @@
+zone_id,zone,risk,onts,compromised,suspicious,severity,attack_origin,alert_since
+VTE,Vientiane Capital,0.0,40,0,0,,,
+PSL,Phongsaly,1.0,11,11,0,critical,Salavan,t=5653.0
+LNT,Luang Namtha,0.0,16,0,0,,,
+ODX,Oudomxay,0.0,16,0,0,,,
+BKO,Bokeo,1.0,10,9,0,critical,Xaysomboun,t=5520.0
+LPB,Luang Prabang,0.0,10,0,0,,,
+HPN,Houaphanh,1.0,12,10,0,critical,Vientiane Capital,t=5568.0
+XBY,Xayaboury,0.0,10,0,0,,,
+XKH,Xiengkhouang,0.0,16,0,0,,,
+VTP,Vientiane Province,0.0,15,0,0,,,
+BLX,Bolikhamxay,0.0,11,0,0,,,
+KHM,Khammouane,0.0,10,0,0,,,
+SVK,Savannakhet,0.0,10,0,0,,,
+SRV,Salavan,1.0,15,8,0,critical,Sekong,t=5990.0
+SEK,Sekong,1.0,15,12,0,critical,Houaphanh,t=5724.0
+CPS,Champasak,0.0,10,0,0,,,
+ATP,Attapeu,0.0,14,0,0,,,
+XSB,Xaysomboun,1.0,13,11,0,critical,Attapeu,t=5853.0
