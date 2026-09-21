@@ -2,7 +2,7 @@
   "schema": "drawio-skill/diagram-ir/v1",
   "metadata": {
     "title": "GeoAI FTTH Security Intelligence Platform — System Architecture",
-    "description": "FTTH ONT account-takeover detection, GeoAI hotspot scoring, automated ACS recovery, and the GeoIP attack-map / Elastic analytics stack.",
+    "description": "FTTH ONT account-takeover detection, GeoAI hotspot scoring, automated ACS recovery, SEA-LION AI analyst, and the GeoIP attack-map / Elastic analytics stack.",
     "source": "geoai repository (simulator.py, pi_agent.py, attackmap/docker-compose.yml)"
   },
   "nodes": [
@@ -53,7 +53,7 @@
       "id": "api",
       "label": "HTTP API + session auth\nGEOAI_USER / X-Auth token",
       "kind": "gateway",
-      "group": "CEIT server/GeoAI core — simulator.py :3030",
+      "group": "GeoAI core — simulator.py :3030",
       "properties": {
         "environment": "production",
         "trust_boundary": "private",
@@ -71,7 +71,7 @@
       "id": "detect",
       "label": "AI detection engine\n≥5 fails / 60 s → suspicious\ncred change → compromised",
       "kind": "service",
-      "group": "CEIT server/GeoAI core — simulator.py :3030",
+      "group": "GeoAI core — simulator.py :3030",
       "properties": {
         "environment": "production",
         "tuning": "WINDOW, SUSPICIOUS_FAILS, TAKEOVER_FAILS"
@@ -88,7 +88,7 @@
       "id": "geoai",
       "label": "GeoAI hotspot scoring\nper-zone risk 0–1 + alerts",
       "kind": "service",
-      "group": "CEIT server/GeoAI core — simulator.py :3030",
+      "group": "GeoAI core — simulator.py :3030",
       "properties": {
         "environment": "production",
         "threshold": "ALERT_MIN_AFFECTED = 3",
@@ -106,7 +106,7 @@
       "id": "acs",
       "label": "Automated ACS recovery\nbatch reset per zone (TR-069 stub)",
       "kind": "service",
-      "group": "CEIT server/GeoAI core — simulator.py :3030",
+      "group": "GeoAI core — simulator.py :3030",
       "properties": {
         "environment": "production",
         "mode": "operator click or AI auto-approve"
@@ -123,7 +123,7 @@
       "id": "state",
       "label": "In-memory state + history\nONTs, zones, alerts, events",
       "kind": "database",
-      "group": "CEIT server/GeoAI core — simulator.py :3030",
+      "group": "GeoAI core — simulator.py :3030",
       "properties": {
         "persistence": "process memory (demo seeds 450 past attacks)"
       },
@@ -136,12 +136,13 @@
     },
     {
       "id": "dashboard",
-      "label": "SOC dashboard (dashboard.html)\nOverview · Analytics · Events",
+      "label": "SOC dashboard (dashboard.html)\nOverview · Analytics · Events · AI analyst",
       "kind": "ui",
-      "group": "CEIT server/SOC console",
+      "group": "SOC console",
       "properties": {
         "polling": "GET /api/state every 3 s",
-        "map": "Leaflet, 18 province risk rings"
+        "map": "Leaflet, 18 province risk rings",
+        "ai": "AI analyst panel: short report + free-text questions"
       },
       "provenance": {
         "path": "dashboard.html"
@@ -154,7 +155,7 @@
       "id": "leaflet",
       "label": "Leaflet + basemap tiles\n(CDN)",
       "kind": "external",
-      "group": "CEIT server/SOC console",
+      "group": "SOC console",
       "properties": {
         "trust_boundary": "third-party"
       },
@@ -183,7 +184,7 @@
       "id": "logstash",
       "label": "Logstash 8.15\ntcp :5055 json_lines + geoip",
       "kind": "pipeline",
-      "group": "CEIT server/Attack-map stack — docker compose",
+      "group": "Attack-map stack — docker compose",
       "properties": {
         "image": "docker.elastic.co/logstash/logstash:8.15.0",
         "enrichment": "GeoLite2 (license-free mirror)"
@@ -199,7 +200,7 @@
       "id": "attacklog",
       "label": "shared/attack.log\nCSV syslog line",
       "kind": "file",
-      "group": "CEIT server/Attack-map stack — docker compose",
+      "group": "Attack-map stack — docker compose",
       "properties": {
         "format": "src_ip,dst_ip,src_port,dst_port,type_attack,cve"
       },
@@ -211,7 +212,7 @@
       "id": "dataserver",
       "label": "DataServer\nGeoIP lookup + aggregation",
       "kind": "service",
-      "group": "CEIT server/Attack-map stack — docker compose",
+      "group": "Attack-map stack — docker compose",
       "properties": {
         "upstream": "MatthewClarkMay/geoip-attack-map",
         "hq_ip": "202.137.130.115 (Laos)"
@@ -224,7 +225,7 @@
       "id": "redis",
       "label": "Redis 7\npub/sub",
       "kind": "queue",
-      "group": "CEIT server/Attack-map stack — docker compose",
+      "group": "Attack-map stack — docker compose",
       "properties": {
         "image": "redis:7-alpine"
       },
@@ -235,7 +236,7 @@
       "id": "mapserver",
       "label": "MapServer :8899\nNorse-style world attack map",
       "kind": "ui",
-      "group": "CEIT server/Attack-map stack — docker compose",
+      "group": "Attack-map stack — docker compose",
       "properties": {
         "transport": "websocket (relative wss://)",
         "port": "8899 → container 8888"
@@ -251,7 +252,7 @@
       "id": "elasticsearch",
       "label": "Elasticsearch 8.15\ngeoai-attacks-*",
       "kind": "database",
-      "group": "CEIT server/Attack-map stack — docker compose",
+      "group": "Attack-map stack — docker compose",
       "properties": {
         "mode": "single-node, security disabled, internal only",
         "bind": "127.0.0.1:9200"
@@ -263,7 +264,7 @@
       "id": "kibana",
       "label": "Kibana :5601\nGeoAI — Attack Analytics",
       "kind": "ui",
-      "group": "CEIT server/Attack-map stack — docker compose",
+      "group": "Attack-map stack — docker compose",
       "properties": {
         "provisioning": "attackmap/setup_kibana.py (index template, data view, TSVB dashboard)"
       },
@@ -295,6 +296,25 @@
       },
       "width": 60,
       "height": 80
+    },
+    {
+      "id": "sealion",
+      "label": "SEA-LION LLM (external)\nGemma-SEA-LION-v4-27B-IT",
+      "kind": "external",
+      "group": "External AI",
+      "properties": {
+        "trust_boundary": "third-party",
+        "endpoint": "api.sea-lion.ai — OpenAI-compatible",
+        "key": "SEALION_API_KEY, server-side only — never sent to the browser",
+        "role": "shift report + operator Q&A on the live case"
+      },
+      "provenance": {
+        "path": "simulator.py",
+        "line": 470
+      },
+      "style": "rounded=1;whiteSpace=wrap;html=1;dashed=1;fillColor=#e1d5e7;strokeColor=#9673a6;",
+      "width": 220,
+      "height": 70
     }
   ],
   "edges": [
@@ -505,6 +525,18 @@
       "label": "HTTPS",
       "kind": "sync",
       "properties": {}
+    },
+    {
+      "id": "api-sealion",
+      "source": "api",
+      "target": "sealion",
+      "label": "POST /api/analyze:\ncase brief ⇄ report",
+      "kind": "sync",
+      "properties": {
+        "protocol": "HTTPS",
+        "payload": "ranked alerts, stats, top IPs, last 15 events"
+      },
+      "style": "endArrow=classic;startArrow=classic;html=1;rounded=0;strokeColor=#9673a6;"
     }
   ]
 }

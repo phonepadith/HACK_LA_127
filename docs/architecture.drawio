@@ -4,294 +4,314 @@
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="group_0" value="CEIT server" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#82b366;fontColor=#82b366;verticalAlign=top;fontStyle=2;dashed=1;" vertex="1" parent="1">
-          <mxGeometry x="12" y="342" width="1296" height="856" as="geometry" />
+        <mxCell id="group_0" value="Attack-map stack — docker compose" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#d6b656;fontColor=#d6b656;verticalAlign=top;fontStyle=2;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="1156" y="366" width="468" height="568" as="geometry" />
         </mxCell>
-        <mxCell id="group_1" value="Edge site (Vientiane)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#d79b00;fontColor=#d79b00;verticalAlign=top;fontStyle=2;dashed=1;" vertex="1" parent="1">
-          <mxGeometry x="386" y="216" width="248" height="118" as="geometry" />
+        <mxCell id="group_1" value="Edge site (Vientiane)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#9673a6;fontColor=#9673a6;verticalAlign=top;fontStyle=2;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="686" y="6" width="248" height="118" as="geometry" />
         </mxCell>
-        <mxCell id="group_2" value="Field — FTTH network" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#6c8ebf;fontColor=#6c8ebf;verticalAlign=top;fontStyle=2;dashed=1;" vertex="1" parent="1">
-          <mxGeometry x="806" y="6" width="248" height="328" as="geometry" />
+        <mxCell id="group_2" value="External AI" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#b85450;fontColor=#b85450;verticalAlign=top;fontStyle=2;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="406" y="246" width="268" height="118" as="geometry" />
         </mxCell>
-        <mxCell id="group_3" value="Attack-map stack — docker compose" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#82b366;fontColor=#82b366;verticalAlign=top;fontStyle=2;dashed=1;" vertex="1" parent="group_0">
-          <mxGeometry x="804" y="264" width="468" height="568" as="geometry" />
+        <mxCell id="group_3" value="Field — FTTH network" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#6c8ebf;fontColor=#6c8ebf;verticalAlign=top;fontStyle=2;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="116" y="376" width="248" height="348" as="geometry" />
         </mxCell>
-        <mxCell id="group_4" value="GeoAI core — simulator.py :3030" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#82b366;fontColor=#82b366;verticalAlign=top;fontStyle=2;dashed=1;" vertex="1" parent="group_0">
-          <mxGeometry x="314" y="24" width="468" height="488" as="geometry" />
+        <mxCell id="group_4" value="GeoAI core — simulator.py :3030" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#82b366;fontColor=#82b366;verticalAlign=top;fontStyle=2;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="676" y="136" width="468" height="478" as="geometry" />
         </mxCell>
-        <mxCell id="group_5" value="SOC console" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#82b366;fontColor=#82b366;verticalAlign=top;fontStyle=2;dashed=1;" vertex="1" parent="group_0">
-          <mxGeometry x="24" y="34" width="268" height="218" as="geometry" />
+        <mxCell id="group_5" value="SOC console" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#d79b00;fontColor=#d79b00;verticalAlign=top;fontStyle=2;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="6" y="136" width="268" height="228" as="geometry" />
         </mxCell>
-        <mxCell id="attacker" value="Credential-stuffing attacker&#10;global source IP pool" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="group_2" data-model-id="attacker" data-kind="external" data-properties="{&quot;trust_boundary&quot;:&quot;internet&quot;,&quot;threat&quot;:&quot;ONT account takeover&quot;}" data-source-properties="{&quot;trust_boundary&quot;:&quot;internet&quot;,&quot;threat&quot;:&quot;ONT account takeover&quot;}" data-source-label="Credential-stuffing attacker&#10;global source IP pool" data-provenance="{&quot;path&quot;:&quot;/Users/phonepadithpp/developments/github.com/geoai/docs/architecture.ir.json&quot;}" data-boundary="internet">
+        <mxCell id="attacker" value="Credential-stuffing attacker&#10;global source IP pool" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="group_3" data-model-id="attacker" data-kind="external" data-properties="{&quot;trust_boundary&quot;:&quot;internet&quot;,&quot;threat&quot;:&quot;ONT account takeover&quot;}" data-source-properties="{&quot;trust_boundary&quot;:&quot;internet&quot;,&quot;threat&quot;:&quot;ONT account takeover&quot;}" data-source-label="Credential-stuffing attacker&#10;global source IP pool" data-provenance="{&quot;path&quot;:&quot;/Users/phonepadithpp/developments/github.com/geoai/docs/architecture.ir.json&quot;}" data-boundary="internet">
           <mxGeometry x="24" y="24" width="200" height="70" as="geometry" />
         </mxCell>
-        <mxCell id="onts" value="FTTH ONTs&#10;~260 across 18 province zones" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="group_2" data-model-id="onts" data-kind="device" data-properties="{&quot;trust_boundary&quot;:&quot;subscriber&quot;,&quot;inventory&quot;:&quot;devices.csv (optional)&quot;}" data-source-properties="{&quot;trust_boundary&quot;:&quot;subscriber&quot;,&quot;inventory&quot;:&quot;devices.csv (optional)&quot;}" data-source-label="FTTH ONTs&#10;~260 across 18 province zones" data-provenance="{&quot;path&quot;:&quot;simulator.py&quot;,&quot;line&quot;:99}" data-boundary="subscriber">
-          <mxGeometry x="24" y="134" width="200" height="70" as="geometry" />
+        <mxCell id="onts" value="FTTH ONTs&#10;~260 across 18 province zones" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="group_3" data-model-id="onts" data-kind="device" data-properties="{&quot;trust_boundary&quot;:&quot;subscriber&quot;,&quot;inventory&quot;:&quot;devices.csv (optional)&quot;}" data-source-properties="{&quot;trust_boundary&quot;:&quot;subscriber&quot;,&quot;inventory&quot;:&quot;devices.csv (optional)&quot;}" data-source-label="FTTH ONTs&#10;~260 across 18 province zones" data-provenance="{&quot;path&quot;:&quot;simulator.py&quot;,&quot;line&quot;:99}" data-boundary="subscriber">
+          <mxGeometry x="24" y="144" width="200" height="70" as="geometry" />
         </mxCell>
-        <mxCell id="collectors" value="OLT / ACS / RADIUS&#10;auth-log collectors" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="group_2" data-model-id="collectors" data-kind="gateway" data-properties="{&quot;trust_boundary&quot;:&quot;operator&quot;,&quot;events&quot;:&quot;login_fail, cred_change, login_ok&quot;}" data-source-properties="{&quot;trust_boundary&quot;:&quot;operator&quot;,&quot;events&quot;:&quot;login_fail, cred_change, login_ok&quot;}" data-source-label="OLT / ACS / RADIUS&#10;auth-log collectors" data-provenance="{&quot;path&quot;:&quot;/Users/phonepadithpp/developments/github.com/geoai/docs/architecture.ir.json&quot;}" data-boundary="operator">
-          <mxGeometry x="24" y="234" width="200" height="70" as="geometry" />
+        <mxCell id="collectors" value="OLT / ACS / RADIUS&#10;auth-log collectors" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="group_3" data-model-id="collectors" data-kind="gateway" data-properties="{&quot;trust_boundary&quot;:&quot;operator&quot;,&quot;events&quot;:&quot;login_fail, cred_change, login_ok&quot;}" data-source-properties="{&quot;trust_boundary&quot;:&quot;operator&quot;,&quot;events&quot;:&quot;login_fail, cred_change, login_ok&quot;}" data-source-label="OLT / ACS / RADIUS&#10;auth-log collectors" data-provenance="{&quot;path&quot;:&quot;/Users/phonepadithpp/developments/github.com/geoai/docs/architecture.ir.json&quot;}" data-boundary="operator">
+          <mxGeometry x="24" y="254" width="200" height="70" as="geometry" />
         </mxCell>
         <mxCell id="api" value="HTTP API + session auth&#10;GEOAI_USER / X-Auth token" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="group_4" data-model-id="api" data-kind="gateway" data-properties="{&quot;environment&quot;:&quot;production&quot;,&quot;trust_boundary&quot;:&quot;private&quot;,&quot;endpoints&quot;:&quot;/api/login, /api/state, /api/log, /api/attack, /api/recover, /api/auto&quot;}" data-source-properties="{&quot;environment&quot;:&quot;production&quot;,&quot;trust_boundary&quot;:&quot;private&quot;,&quot;endpoints&quot;:&quot;/api/login, /api/state, /api/log, /api/attack, /api/recover, /api/auto&quot;}" data-source-label="HTTP API + session auth&#10;GEOAI_USER / X-Auth token" data-provenance="{&quot;path&quot;:&quot;simulator.py&quot;,&quot;line&quot;:437}" data-boundary="private">
-          <mxGeometry x="74" y="24" width="210" height="70" as="geometry" />
+          <mxGeometry x="24" y="24" width="210" height="70" as="geometry" />
         </mxCell>
         <mxCell id="detect" value="AI detection engine&#10;≥5 fails / 60 s → suspicious&#10;cred change → compromised" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="group_4" data-model-id="detect" data-kind="service" data-properties="{&quot;environment&quot;:&quot;production&quot;,&quot;tuning&quot;:&quot;WINDOW, SUSPICIOUS_FAILS, TAKEOVER_FAILS&quot;}" data-source-properties="{&quot;environment&quot;:&quot;production&quot;,&quot;tuning&quot;:&quot;WINDOW, SUSPICIOUS_FAILS, TAKEOVER_FAILS&quot;}" data-source-label="AI detection engine&#10;≥5 fails / 60 s → suspicious&#10;cred change → compromised" data-provenance="{&quot;path&quot;:&quot;simulator.py&quot;,&quot;line&quot;:281}">
-          <mxGeometry x="144" y="134" width="210" height="80" as="geometry" />
+          <mxGeometry x="154" y="124" width="210" height="80" as="geometry" />
         </mxCell>
         <mxCell id="geoai" value="GeoAI hotspot scoring&#10;per-zone risk 0–1 + alerts" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="group_4" data-model-id="geoai" data-kind="service" data-properties="{&quot;environment&quot;:&quot;production&quot;,&quot;threshold&quot;:&quot;ALERT_MIN_AFFECTED = 3&quot;,&quot;severity&quot;:&quot;low → critical&quot;}" data-source-properties="{&quot;environment&quot;:&quot;production&quot;,&quot;threshold&quot;:&quot;ALERT_MIN_AFFECTED = 3&quot;,&quot;severity&quot;:&quot;low → critical&quot;}" data-source-label="GeoAI hotspot scoring&#10;per-zone risk 0–1 + alerts" data-provenance="{&quot;path&quot;:&quot;simulator.py&quot;,&quot;line&quot;:296}">
-          <mxGeometry x="154" y="274" width="210" height="70" as="geometry" />
+          <mxGeometry x="164" y="264" width="210" height="70" as="geometry" />
         </mxCell>
         <mxCell id="acs" value="Automated ACS recovery&#10;batch reset per zone (TR-069 stub)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="group_4" data-model-id="acs" data-kind="service" data-properties="{&quot;environment&quot;:&quot;production&quot;,&quot;mode&quot;:&quot;operator click or AI auto-approve&quot;}" data-source-properties="{&quot;environment&quot;:&quot;production&quot;,&quot;mode&quot;:&quot;operator click or AI auto-approve&quot;}" data-source-label="Automated ACS recovery&#10;batch reset per zone (TR-069 stub)" data-provenance="{&quot;path&quot;:&quot;simulator.py&quot;,&quot;line&quot;:329}">
           <mxGeometry x="234" y="384" width="210" height="70" as="geometry" />
         </mxCell>
         <mxCell id="state" value="In-memory state + history&#10;ONTs, zones, alerts, events" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="group_4" data-model-id="state" data-kind="database" data-properties="{&quot;persistence&quot;:&quot;process memory (demo seeds 450 past attacks)&quot;}" data-source-properties="{&quot;persistence&quot;:&quot;process memory (demo seeds 450 past attacks)&quot;}" data-source-label="In-memory state + history&#10;ONTs, zones, alerts, events" data-provenance="{&quot;path&quot;:&quot;simulator.py&quot;,&quot;line&quot;:351}">
-          <mxGeometry x="24" y="384" width="190" height="80" as="geometry" />
+          <mxGeometry x="24" y="374" width="190" height="80" as="geometry" />
         </mxCell>
-        <mxCell id="dashboard" value="SOC dashboard (dashboard.html)&#10;Overview · Analytics · Events" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="group_5" data-model-id="dashboard" data-kind="ui" data-properties="{&quot;polling&quot;:&quot;GET /api/state every 3 s&quot;,&quot;map&quot;:&quot;Leaflet, 18 province risk rings&quot;}" data-source-properties="{&quot;polling&quot;:&quot;GET /api/state every 3 s&quot;,&quot;map&quot;:&quot;Leaflet, 18 province risk rings&quot;}" data-source-label="SOC dashboard (dashboard.html)&#10;Overview · Analytics · Events" data-provenance="{&quot;path&quot;:&quot;dashboard.html&quot;}">
-          <mxGeometry x="24" y="124" width="220" height="70" as="geometry" />
+        <mxCell id="dashboard" value="SOC dashboard (dashboard.html)&#10;Overview · Analytics · Events · AI analyst" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="group_5" data-model-id="dashboard" data-kind="ui" data-properties="{&quot;polling&quot;:&quot;GET /api/state every 3 s&quot;,&quot;map&quot;:&quot;Leaflet, 18 province risk rings&quot;,&quot;ai&quot;:&quot;AI analyst panel: short report + free-text questions&quot;}" data-source-properties="{&quot;polling&quot;:&quot;GET /api/state every 3 s&quot;,&quot;map&quot;:&quot;Leaflet, 18 province risk rings&quot;,&quot;ai&quot;:&quot;AI analyst panel: short report + free-text questions&quot;}" data-source-label="SOC dashboard (dashboard.html)&#10;Overview · Analytics · Events · AI analyst" data-provenance="{&quot;path&quot;:&quot;dashboard.html&quot;}">
+          <mxGeometry x="24" y="134" width="220" height="70" as="geometry" />
         </mxCell>
         <mxCell id="leaflet" value="Leaflet + basemap tiles&#10;(CDN)" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;fillColor=#f5f5f5;strokeColor=#666666;" vertex="1" parent="group_5" data-model-id="leaflet" data-kind="external" data-properties="{&quot;trust_boundary&quot;:&quot;third-party&quot;}" data-source-properties="{&quot;trust_boundary&quot;:&quot;third-party&quot;}" data-source-label="Leaflet + basemap tiles&#10;(CDN)" data-provenance="{&quot;path&quot;:&quot;/Users/phonepadithpp/developments/github.com/geoai/docs/architecture.ir.json&quot;}" data-boundary="third-party">
-          <mxGeometry x="44" y="24" width="170" height="60" as="geometry" />
+          <mxGeometry x="54" y="24" width="170" height="60" as="geometry" />
         </mxCell>
         <mxCell id="pi" value="Raspberry Pi edge sensor&#10;pi_agent.py :8080" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="group_1" data-model-id="pi" data-kind="device" data-properties="{&quot;identity&quot;:&quot;pi-sensor@&lt;hostname&gt;&quot;,&quot;poll&quot;:&quot;3 s&quot;,&quot;capability&quot;:&quot;detect + self-recover, own monitor UI&quot;}" data-source-properties="{&quot;identity&quot;:&quot;pi-sensor@&lt;hostname&gt;&quot;,&quot;poll&quot;:&quot;3 s&quot;,&quot;capability&quot;:&quot;detect + self-recover, own monitor UI&quot;}" data-source-label="Raspberry Pi edge sensor&#10;pi_agent.py :8080" data-provenance="{&quot;path&quot;:&quot;pi_agent.py&quot;,&quot;line&quot;:82}">
           <mxGeometry x="24" y="24" width="200" height="70" as="geometry" />
         </mxCell>
-        <mxCell id="logstash" value="Logstash 8.15&#10;tcp :5055 json_lines + geoip" style="shape=hexagon;perimeter=hexagonPerimeter2;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="group_3" data-model-id="logstash" data-kind="pipeline" data-properties="{&quot;image&quot;:&quot;docker.elastic.co/logstash/logstash:8.15.0&quot;,&quot;enrichment&quot;:&quot;GeoLite2 (license-free mirror)&quot;}" data-source-properties="{&quot;image&quot;:&quot;docker.elastic.co/logstash/logstash:8.15.0&quot;,&quot;enrichment&quot;:&quot;GeoLite2 (license-free mirror)&quot;}" data-source-label="Logstash 8.15&#10;tcp :5055 json_lines + geoip" data-provenance="{&quot;path&quot;:&quot;attackmap/logstash/pipeline/geoai.conf&quot;}">
+        <mxCell id="logstash" value="Logstash 8.15&#10;tcp :5055 json_lines + geoip" style="shape=hexagon;perimeter=hexagonPerimeter2;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="group_0" data-model-id="logstash" data-kind="pipeline" data-properties="{&quot;image&quot;:&quot;docker.elastic.co/logstash/logstash:8.15.0&quot;,&quot;enrichment&quot;:&quot;GeoLite2 (license-free mirror)&quot;}" data-source-properties="{&quot;image&quot;:&quot;docker.elastic.co/logstash/logstash:8.15.0&quot;,&quot;enrichment&quot;:&quot;GeoLite2 (license-free mirror)&quot;}" data-source-label="Logstash 8.15&#10;tcp :5055 json_lines + geoip" data-provenance="{&quot;path&quot;:&quot;attackmap/logstash/pipeline/geoai.conf&quot;}">
           <mxGeometry x="24" y="24" width="210" height="80" as="geometry" />
         </mxCell>
-        <mxCell id="attacklog" value="shared/attack.log&#10;CSV syslog line" style="shape=note;whiteSpace=wrap;html=1;size=14;fillColor=#f5f5f5;strokeColor=#666666;" vertex="1" parent="group_3" data-model-id="attacklog" data-kind="file" data-properties="{&quot;format&quot;:&quot;src_ip,dst_ip,src_port,dst_port,type_attack,cve&quot;}" data-source-properties="{&quot;format&quot;:&quot;src_ip,dst_ip,src_port,dst_port,type_attack,cve&quot;}" data-source-label="shared/attack.log&#10;CSV syslog line" data-provenance="{&quot;path&quot;:&quot;/Users/phonepadithpp/developments/github.com/geoai/docs/architecture.ir.json&quot;}">
-          <mxGeometry x="244" y="144" width="170" height="70" as="geometry" />
+        <mxCell id="attacklog" value="shared/attack.log&#10;CSV syslog line" style="shape=note;whiteSpace=wrap;html=1;size=14;fillColor=#f5f5f5;strokeColor=#666666;" vertex="1" parent="group_0" data-model-id="attacklog" data-kind="file" data-properties="{&quot;format&quot;:&quot;src_ip,dst_ip,src_port,dst_port,type_attack,cve&quot;}" data-source-properties="{&quot;format&quot;:&quot;src_ip,dst_ip,src_port,dst_port,type_attack,cve&quot;}" data-source-label="shared/attack.log&#10;CSV syslog line" data-provenance="{&quot;path&quot;:&quot;/Users/phonepadithpp/developments/github.com/geoai/docs/architecture.ir.json&quot;}">
+          <mxGeometry x="34" y="154" width="170" height="70" as="geometry" />
         </mxCell>
-        <mxCell id="dataserver" value="DataServer&#10;GeoIP lookup + aggregation" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="group_3" data-model-id="dataserver" data-kind="service" data-properties="{&quot;upstream&quot;:&quot;MatthewClarkMay/geoip-attack-map&quot;,&quot;hq_ip&quot;:&quot;202.137.130.115 (Laos)&quot;}" data-source-properties="{&quot;upstream&quot;:&quot;MatthewClarkMay/geoip-attack-map&quot;,&quot;hq_ip&quot;:&quot;202.137.130.115 (Laos)&quot;}" data-source-label="DataServer&#10;GeoIP lookup + aggregation" data-provenance="{&quot;path&quot;:&quot;/Users/phonepadithpp/developments/github.com/geoai/docs/architecture.ir.json&quot;}">
-          <mxGeometry x="244" y="254" width="200" height="70" as="geometry" />
+        <mxCell id="dataserver" value="DataServer&#10;GeoIP lookup + aggregation" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="group_0" data-model-id="dataserver" data-kind="service" data-properties="{&quot;upstream&quot;:&quot;MatthewClarkMay/geoip-attack-map&quot;,&quot;hq_ip&quot;:&quot;202.137.130.115 (Laos)&quot;}" data-source-properties="{&quot;upstream&quot;:&quot;MatthewClarkMay/geoip-attack-map&quot;,&quot;hq_ip&quot;:&quot;202.137.130.115 (Laos)&quot;}" data-source-label="DataServer&#10;GeoIP lookup + aggregation" data-provenance="{&quot;path&quot;:&quot;/Users/phonepadithpp/developments/github.com/geoai/docs/architecture.ir.json&quot;}">
+          <mxGeometry x="24" y="264" width="200" height="70" as="geometry" />
         </mxCell>
-        <mxCell id="redis" value="Redis 7&#10;pub/sub" style="shape=hexagon;perimeter=hexagonPerimeter2;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="group_3" data-model-id="redis" data-kind="queue" data-properties="{&quot;image&quot;:&quot;redis:7-alpine&quot;}" data-source-properties="{&quot;image&quot;:&quot;redis:7-alpine&quot;}" data-source-label="Redis 7&#10;pub/sub" data-provenance="{&quot;path&quot;:&quot;/Users/phonepadithpp/developments/github.com/geoai/docs/architecture.ir.json&quot;}">
-          <mxGeometry x="244" y="364" width="150" height="70" as="geometry" />
+        <mxCell id="redis" value="Redis 7&#10;pub/sub" style="shape=hexagon;perimeter=hexagonPerimeter2;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="group_0" data-model-id="redis" data-kind="queue" data-properties="{&quot;image&quot;:&quot;redis:7-alpine&quot;}" data-source-properties="{&quot;image&quot;:&quot;redis:7-alpine&quot;}" data-source-label="Redis 7&#10;pub/sub" data-provenance="{&quot;path&quot;:&quot;/Users/phonepadithpp/developments/github.com/geoai/docs/architecture.ir.json&quot;}">
+          <mxGeometry x="44" y="364" width="150" height="70" as="geometry" />
         </mxCell>
-        <mxCell id="mapserver" value="MapServer :8899&#10;Norse-style world attack map" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="group_3" data-model-id="mapserver" data-kind="ui" data-properties="{&quot;transport&quot;:&quot;websocket (relative wss://)&quot;,&quot;port&quot;:&quot;8899 → container 8888&quot;}" data-source-properties="{&quot;transport&quot;:&quot;websocket (relative wss://)&quot;,&quot;port&quot;:&quot;8899 → container 8888&quot;}" data-source-label="MapServer :8899&#10;Norse-style world attack map" data-provenance="{&quot;path&quot;:&quot;attackmap/mapserver.py&quot;}">
-          <mxGeometry x="194" y="474" width="210" height="70" as="geometry" />
+        <mxCell id="mapserver" value="MapServer :8899&#10;Norse-style world attack map" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="group_0" data-model-id="mapserver" data-kind="ui" data-properties="{&quot;transport&quot;:&quot;websocket (relative wss://)&quot;,&quot;port&quot;:&quot;8899 → container 8888&quot;}" data-source-properties="{&quot;transport&quot;:&quot;websocket (relative wss://)&quot;,&quot;port&quot;:&quot;8899 → container 8888&quot;}" data-source-label="MapServer :8899&#10;Norse-style world attack map" data-provenance="{&quot;path&quot;:&quot;attackmap/mapserver.py&quot;}">
+          <mxGeometry x="24" y="474" width="210" height="70" as="geometry" />
         </mxCell>
-        <mxCell id="elasticsearch" value="Elasticsearch 8.15&#10;geoai-attacks-*" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="group_3" data-model-id="elasticsearch" data-kind="database" data-properties="{&quot;mode&quot;:&quot;single-node, security disabled, internal only&quot;,&quot;bind&quot;:&quot;127.0.0.1:9200&quot;}" data-source-properties="{&quot;mode&quot;:&quot;single-node, security disabled, internal only&quot;,&quot;bind&quot;:&quot;127.0.0.1:9200&quot;}" data-source-label="Elasticsearch 8.15&#10;geoai-attacks-*" data-provenance="{&quot;path&quot;:&quot;/Users/phonepadithpp/developments/github.com/geoai/docs/architecture.ir.json&quot;}">
-          <mxGeometry x="34" y="144" width="190" height="80" as="geometry" />
+        <mxCell id="elasticsearch" value="Elasticsearch 8.15&#10;geoai-attacks-*" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="group_0" data-model-id="elasticsearch" data-kind="database" data-properties="{&quot;mode&quot;:&quot;single-node, security disabled, internal only&quot;,&quot;bind&quot;:&quot;127.0.0.1:9200&quot;}" data-source-properties="{&quot;mode&quot;:&quot;single-node, security disabled, internal only&quot;,&quot;bind&quot;:&quot;127.0.0.1:9200&quot;}" data-source-label="Elasticsearch 8.15&#10;geoai-attacks-*" data-provenance="{&quot;path&quot;:&quot;/Users/phonepadithpp/developments/github.com/geoai/docs/architecture.ir.json&quot;}">
+          <mxGeometry x="234" y="144" width="190" height="80" as="geometry" />
         </mxCell>
-        <mxCell id="kibana" value="Kibana :5601&#10;GeoAI — Attack Analytics" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="group_3" data-model-id="kibana" data-kind="ui" data-properties="{&quot;provisioning&quot;:&quot;attackmap/setup_kibana.py (index template, data view, TSVB dashboard)&quot;}" data-source-properties="{&quot;provisioning&quot;:&quot;attackmap/setup_kibana.py (index template, data view, TSVB dashboard)&quot;}" data-source-label="Kibana :5601&#10;GeoAI — Attack Analytics" data-provenance="{&quot;path&quot;:&quot;attackmap/setup_kibana.py&quot;}">
-          <mxGeometry x="24" y="254" width="200" height="70" as="geometry" />
+        <mxCell id="kibana" value="Kibana :5601&#10;GeoAI — Attack Analytics" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="group_0" data-model-id="kibana" data-kind="ui" data-properties="{&quot;provisioning&quot;:&quot;attackmap/setup_kibana.py (index template, data view, TSVB dashboard)&quot;}" data-source-properties="{&quot;provisioning&quot;:&quot;attackmap/setup_kibana.py (index template, data view, TSVB dashboard)&quot;}" data-source-label="Kibana :5601&#10;GeoAI — Attack Analytics" data-provenance="{&quot;path&quot;:&quot;attackmap/setup_kibana.py&quot;}">
+          <mxGeometry x="244" y="264" width="200" height="70" as="geometry" />
         </mxCell>
         <mxCell id="tunnel" value="Cloudflare tunnel" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1" data-model-id="tunnel" data-kind="gateway" data-properties="{&quot;trust_boundary&quot;:&quot;public edge&quot;,&quot;exposes&quot;:&quot;8899 world map, 5601 Kibana&quot;}" data-source-properties="{&quot;trust_boundary&quot;:&quot;public edge&quot;,&quot;exposes&quot;:&quot;8899 world map, 5601 Kibana&quot;}" data-source-label="Cloudflare tunnel" data-provenance="{&quot;path&quot;:&quot;/Users/phonepadithpp/developments/github.com/geoai/docs/architecture.ir.json&quot;}" data-boundary="public edge">
-          <mxGeometry x="850" y="1200" width="170" height="60" as="geometry" />
+          <mxGeometry x="1200" y="940" width="170" height="60" as="geometry" />
         </mxCell>
         <mxCell id="soc" value="SOC operator" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" vertex="1" parent="1" data-model-id="soc" data-kind="actor" data-properties="{&quot;auth&quot;:&quot;sign-in screen, token-gated /api/*&quot;}" data-source-properties="{&quot;auth&quot;:&quot;sign-in screen, token-gated /api/*&quot;}" data-source-label="SOC operator" data-provenance="{&quot;path&quot;:&quot;/Users/phonepadithpp/developments/github.com/geoai/docs/architecture.ir.json&quot;}">
-          <mxGeometry x="550" y="1300" width="60" height="80" as="geometry" />
+          <mxGeometry x="650" y="1040" width="60" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="sealion" value="SEA-LION LLM (external)&#10;Gemma-SEA-LION-v4-27B-IT" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="group_2" data-model-id="sealion" data-kind="external" data-properties="{&quot;trust_boundary&quot;:&quot;third-party&quot;,&quot;endpoint&quot;:&quot;api.sea-lion.ai — OpenAI-compatible&quot;,&quot;key&quot;:&quot;SEALION_API_KEY, server-side only — never sent to the browser&quot;,&quot;role&quot;:&quot;shift report + operator Q&amp;A on the live case&quot;}" data-source-properties="{&quot;trust_boundary&quot;:&quot;third-party&quot;,&quot;endpoint&quot;:&quot;api.sea-lion.ai — OpenAI-compatible&quot;,&quot;key&quot;:&quot;SEALION_API_KEY, server-side only — never sent to the browser&quot;,&quot;role&quot;:&quot;shift report + operator Q&amp;A on the live case&quot;}" data-source-label="SEA-LION LLM (external)&#10;Gemma-SEA-LION-v4-27B-IT" data-provenance="{&quot;path&quot;:&quot;simulator.py&quot;,&quot;line&quot;:470}" data-boundary="third-party">
+          <mxGeometry x="24" y="24" width="220" height="70" as="geometry" />
         </mxCell>
         <mxCell id="e0" value="credential stuffing" style="endArrow=classic;html=1;rounded=0;dashed=1;strokeColor=#b85450;" edge="1" parent="1" source="attacker" target="onts" data-model-id="attacker-onts" data-kind="attack" data-properties="{&quot;signal&quot;:&quot;repeated login_fail, then cred_change&quot;}" data-source-properties="{&quot;signal&quot;:&quot;repeated login_fail, then cred_change&quot;}" data-source-label="credential stuffing">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="930" y="100" />
-              <mxPoint x="930" y="130" />
+              <mxPoint x="240" y="470" />
+              <mxPoint x="240" y="500" />
             </Array>
           </mxGeometry>
         </mxCell>
         <mxCell id="e1" value="auth logs" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="onts" target="collectors" data-model-id="onts-collectors" data-kind="async" data-properties="{}" data-source-properties="{}" data-source-label="auth logs">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="930" y="210" />
-              <mxPoint x="930" y="230" />
+              <mxPoint x="240" y="590" />
+              <mxPoint x="240" y="610" />
             </Array>
           </mxGeometry>
         </mxCell>
         <mxCell id="e2" value="POST /api/log" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="collectors" target="api" data-model-id="collectors-api" data-kind="sync" data-properties="{&quot;protocol&quot;:&quot;HTTP JSON&quot;,&quot;mode&quot;:&quot;--live disables synthetic traffic&quot;}" data-source-properties="{&quot;protocol&quot;:&quot;HTTP JSON&quot;,&quot;mode&quot;:&quot;--live disables synthetic traffic&quot;}" data-source-label="POST /api/log">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="900" y="360" />
-              <mxPoint x="900" y="430" />
-              <mxPoint x="900" y="430" />
-              <mxPoint x="900" y="430" />
-              <mxPoint x="630" y="430" />
+              <mxPoint x="370" y="650" />
+              <mxPoint x="380" y="650" />
+              <mxPoint x="380" y="650" />
+              <mxPoint x="380" y="650" />
+              <mxPoint x="380" y="200" />
+              <mxPoint x="380" y="200" />
+              <mxPoint x="380" y="200" />
+              <mxPoint x="690" y="200" />
             </Array>
           </mxGeometry>
         </mxCell>
         <mxCell id="e3" value="ingest events" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="api" target="detect" data-model-id="api-detect" data-kind="sync" data-properties="{}" data-source-properties="{}" data-source-label="ingest events">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="540" y="460" />
-              <mxPoint x="540" y="490" />
+              <mxPoint x="870" y="230" />
+              <mxPoint x="870" y="250" />
             </Array>
           </mxGeometry>
         </mxCell>
         <mxCell id="e4" value="ONT status per zone" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="detect" target="geoai" data-model-id="detect-geoai" data-kind="sync" data-properties="{}" data-source-properties="{}" data-source-label="ONT status per zone">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="580" y="580" />
-              <mxPoint x="580" y="620" />
+              <mxPoint x="940" y="340" />
+              <mxPoint x="940" y="390" />
             </Array>
           </mxGeometry>
         </mxCell>
         <mxCell id="e5" value="≥3 affected" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="geoai" target="acs" data-model-id="geoai-acs" data-kind="sync" data-properties="{}" data-source-properties="{}" data-source-label="≥3 affected">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="620" y="710" />
-              <mxPoint x="620" y="740" />
+              <mxPoint x="980" y="470" />
+              <mxPoint x="980" y="500" />
             </Array>
           </mxGeometry>
         </mxCell>
         <mxCell id="e6" value="batch config push / ONT reset" style="endArrow=classic;html=1;rounded=0;strokeColor=#82b366;" edge="1" parent="1" source="acs" target="collectors" data-model-id="acs-collectors" data-kind="sync" data-properties="{&quot;note&quot;:&quot;ACS stub — wire vendor TR-069/NETCONF here&quot;}" data-source-properties="{&quot;note&quot;:&quot;ACS stub — wire vendor TR-069/NETCONF here&quot;}" data-source-label="batch config push / ONT reset">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="730" y="640" />
-              <mxPoint x="730" y="280" />
-              <mxPoint x="730" y="280" />
-              <mxPoint x="730" y="280" />
-              <mxPoint x="820" y="280" />
+              <mxPoint x="1020" y="620" />
+              <mxPoint x="1020" y="670" />
+              <mxPoint x="1020" y="670" />
+              <mxPoint x="1020" y="670" />
+              <mxPoint x="350" y="670" />
             </Array>
           </mxGeometry>
         </mxCell>
         <mxCell id="e7" value="events" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="detect" target="state" data-model-id="detect-state" data-kind="write" data-properties="{}" data-source-properties="{}" data-source-label="events">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="480" y="580" />
-              <mxPoint x="480" y="740" />
+              <mxPoint x="830" y="340" />
+              <mxPoint x="830" y="500" />
             </Array>
           </mxGeometry>
         </mxCell>
         <mxCell id="e8" value="alerts, history" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="geoai" target="state" data-model-id="geoai-state" data-kind="write" data-properties="{}" data-source-properties="{}" data-source-label="alerts, history">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="510" y="710" />
-              <mxPoint x="510" y="730" />
+              <mxPoint x="870" y="470" />
+              <mxPoint x="870" y="500" />
             </Array>
           </mxGeometry>
         </mxCell>
         <mxCell id="e9" value="read state / history" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="api" target="state" data-model-id="api-state" data-kind="sync" data-properties="{}" data-source-properties="{}" data-source-label="read state / history">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="440" y="460" />
-              <mxPoint x="440" y="740" />
+              <mxPoint x="790" y="230" />
+              <mxPoint x="790" y="500" />
             </Array>
           </mxGeometry>
         </mxCell>
         <mxCell id="e10" value="state JSON (3 s poll)" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="api" target="dashboard" data-model-id="api-dashboard" data-kind="sync" data-properties="{}" data-source-properties="{}" data-source-label="state JSON (3 s poll)">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="340" y="430" />
-              <mxPoint x="260" y="430" />
-              <mxPoint x="260" y="430" />
-              <mxPoint x="260" y="430" />
-              <mxPoint x="260" y="490" />
+              <mxPoint x="540" y="180" />
+              <mxPoint x="240" y="180" />
+              <mxPoint x="240" y="180" />
+              <mxPoint x="240" y="180" />
+              <mxPoint x="240" y="260" />
             </Array>
           </mxGeometry>
         </mxCell>
         <mxCell id="e11" value="tiles" style="endArrow=classic;html=1;rounded=0;dashed=1;strokeColor=#666666;" edge="1" parent="1" source="leaflet" target="dashboard" data-model-id="leaflet-dashboard" data-kind="sync" data-properties="{&quot;trust_boundary&quot;:&quot;third-party&quot;}" data-source-properties="{&quot;trust_boundary&quot;:&quot;third-party&quot;}" data-source-label="tiles">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="170" y="460" />
-              <mxPoint x="170" y="490" />
+              <mxPoint x="140" y="220" />
+              <mxPoint x="140" y="260" />
             </Array>
           </mxGeometry>
         </mxCell>
         <mxCell id="e12" value="map, alerts, recover" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="dashboard" target="soc" data-model-id="dashboard-soc" data-kind="sync" data-properties="{}" data-source-properties="{}" data-source-label="map, alerts, recover">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="170" y="730" />
-              <mxPoint x="170" y="1340" />
-              <mxPoint x="170" y="1340" />
-              <mxPoint x="170" y="1340" />
-              <mxPoint x="540" y="1340" />
+              <mxPoint x="90" y="490" />
+              <mxPoint x="90" y="1080" />
+              <mxPoint x="90" y="1080" />
+              <mxPoint x="90" y="1080" />
+              <mxPoint x="640" y="1080" />
             </Array>
           </mxGeometry>
         </mxCell>
         <mxCell id="e13" value="login, poll, /api/recover" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="pi" target="api" data-model-id="pi-api" data-kind="sync" data-properties="{&quot;attribution&quot;:&quot;recoveries appear in the live feed as pi-sensor@&lt;host&gt;&quot;}" data-source-properties="{&quot;attribution&quot;:&quot;recoveries appear in the live feed as pi-sensor@&lt;host&gt;&quot;}" data-source-label="login, poll, /api/recover">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="510" y="310" />
-              <mxPoint x="510" y="380" />
+              <mxPoint x="810" y="100" />
+              <mxPoint x="810" y="150" />
             </Array>
           </mxGeometry>
         </mxCell>
         <mxCell id="e14" value="attack event, TCP :5055&#10;(only when LOGSTASH_HOST set)" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="detect" target="logstash" data-model-id="detect-logstash" data-kind="async" data-properties="{&quot;function&quot;:&quot;ship_attack()&quot;}" data-source-properties="{&quot;function&quot;:&quot;ship_attack()&quot;}" data-source-label="attack event, TCP :5055&#10;(only when LOGSTASH_HOST set)">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="800" y="540" />
-              <mxPoint x="970" y="540" />
-              <mxPoint x="970" y="540" />
-              <mxPoint x="970" y="540" />
-              <mxPoint x="970" y="620" />
+              <mxPoint x="1140" y="300" />
+              <mxPoint x="1280" y="300" />
+              <mxPoint x="1280" y="300" />
+              <mxPoint x="1280" y="300" />
+              <mxPoint x="1280" y="380" />
             </Array>
           </mxGeometry>
         </mxCell>
         <mxCell id="e15" value="index geoai-attacks-%{+YYYY.MM.dd}" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="logstash" target="elasticsearch" data-model-id="logstash-es" data-kind="write" data-properties="{}" data-source-properties="{}" data-source-label="index geoai-attacks-%{+YYYY.MM.dd}">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="940" y="710" />
-              <mxPoint x="940" y="740" />
+              <mxPoint x="1380" y="510" />
+              <mxPoint x="1380" y="550" />
+              <mxPoint x="1380" y="550" />
+              <mxPoint x="1380" y="550" />
+              <mxPoint x="1380" y="550" />
             </Array>
           </mxGeometry>
         </mxCell>
         <mxCell id="e16" value="syslog line" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="logstash" target="attacklog" data-model-id="logstash-attacklog" data-kind="write" data-properties="{}" data-source-properties="{}" data-source-label="syslog line">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="1040" y="740" />
-              <mxPoint x="1040" y="790" />
-              <mxPoint x="1040" y="790" />
-              <mxPoint x="1040" y="790" />
-              <mxPoint x="1050" y="790" />
+              <mxPoint x="1280" y="480" />
+              <mxPoint x="1280" y="500" />
             </Array>
           </mxGeometry>
         </mxCell>
         <mxCell id="e17" value="tail" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="attacklog" target="dataserver" data-model-id="attacklog-dataserver" data-kind="async" data-properties="{}" data-source-properties="{}" data-source-label="tail">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="1150" y="820" />
-              <mxPoint x="1150" y="850" />
+              <mxPoint x="1280" y="590" />
+              <mxPoint x="1280" y="610" />
             </Array>
           </mxGeometry>
         </mxCell>
         <mxCell id="e18" value="publish" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="dataserver" target="redis" data-model-id="dataserver-redis" data-kind="async" data-properties="{}" data-source-properties="{}" data-source-label="publish">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="1130" y="930" />
-              <mxPoint x="1130" y="960" />
+              <mxPoint x="1280" y="700" />
+              <mxPoint x="1280" y="720" />
             </Array>
           </mxGeometry>
         </mxCell>
         <mxCell id="e19" value="subscribe" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="redis" target="mapserver" data-model-id="redis-mapserver" data-kind="async" data-properties="{}" data-source-properties="{}" data-source-label="subscribe">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="1130" y="1040" />
-              <mxPoint x="1130" y="1060" />
+              <mxPoint x="1280" y="800" />
+              <mxPoint x="1280" y="830" />
             </Array>
           </mxGeometry>
         </mxCell>
         <mxCell id="e20" value="queries" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="elasticsearch" target="kibana" data-model-id="es-kibana" data-kind="sync" data-properties="{}" data-source-properties="{}" data-source-label="queries">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="940" y="830" />
-              <mxPoint x="940" y="850" />
+              <mxPoint x="1490" y="590" />
+              <mxPoint x="1490" y="620" />
             </Array>
           </mxGeometry>
         </mxCell>
         <mxCell id="e21" value=":8899" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="mapserver" target="tunnel" data-model-id="mapserver-tunnel" data-kind="sync" data-properties="{}" data-source-properties="{}" data-source-label=":8899">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="1010" y="1150" />
-              <mxPoint x="1010" y="1190" />
+              <mxPoint x="1280" y="910" />
+              <mxPoint x="1280" y="930" />
             </Array>
           </mxGeometry>
         </mxCell>
         <mxCell id="e22" value=":5601" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="kibana" target="tunnel" data-model-id="kibana-tunnel" data-kind="sync" data-properties="{}" data-source-properties="{}" data-source-label=":5601">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="930" y="930" />
-              <mxPoint x="930" y="1190" />
+              <mxPoint x="1500" y="780" />
+              <mxPoint x="1500" y="970" />
+              <mxPoint x="1500" y="970" />
+              <mxPoint x="1500" y="970" />
+              <mxPoint x="1380" y="970" />
             </Array>
           </mxGeometry>
         </mxCell>
         <mxCell id="e23" value="HTTPS" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="tunnel" target="soc" data-model-id="tunnel-soc" data-kind="sync" data-properties="{}" data-source-properties="{}" data-source-label="HTTPS">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="750" y="1230" />
-              <mxPoint x="580" y="1230" />
-              <mxPoint x="580" y="1230" />
-              <mxPoint x="580" y="1230" />
-              <mxPoint x="580" y="1290" />
+              <mxPoint x="1040" y="970" />
+              <mxPoint x="710" y="970" />
+              <mxPoint x="710" y="970" />
+              <mxPoint x="710" y="970" />
+              <mxPoint x="710" y="1030" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e24" value="POST /api/analyze:&#10;case brief ⇄ report" style="endArrow=classic;startArrow=classic;html=1;rounded=0;strokeColor=#9673a6;" edge="1" parent="1" source="api" target="sealion" data-model-id="api-sealion" data-kind="sync" data-properties="{&quot;protocol&quot;:&quot;HTTPS&quot;,&quot;payload&quot;:&quot;ranked alerts, stats, top IPs, last 15 events&quot;}" data-source-properties="{&quot;protocol&quot;:&quot;HTTPS&quot;,&quot;payload&quot;:&quot;ranked alerts, stats, top IPs, last 15 events&quot;}" data-source-label="POST /api/analyze:&#10;case brief ⇄ report">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="740" y="260" />
+              <mxPoint x="740" y="300" />
+              <mxPoint x="740" y="300" />
+              <mxPoint x="740" y="300" />
+              <mxPoint x="660" y="300" />
             </Array>
           </mxGeometry>
         </mxCell>
